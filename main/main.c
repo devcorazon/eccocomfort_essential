@@ -18,78 +18,89 @@
 #include <freertos/task.h>
 #include <esp_system.h>
 #include <sht4x.h>
+#include <sgp40.h>
 #include <string.h>
 #include <esp_err.h>
+#include <esp_log.h>
 
 /* float is used in printf(). you need non-default configuration in
  * sdkconfig for ESP8266, which is enabled by default for this
  * example. see sdkconfig.defaults.esp8266
  */
-
 #ifndef APP_CPU_NUM
 #define APP_CPU_NUM PRO_CPU_NUM
 #endif
 
-static sht4x_t dev;
+#define I2C_MASTER_SDA_PIN 4
+#define I2C_MASTER_SCL_PIN 5
 
-#if defined(CONFIG_EXAMPLE_SHT4X_DEMO_LL)
 
-void task(void *pvParameters)
+static const char *TAG = "ecocomfort_essential";
+
+static const char *voc_index_name(int32_t voc_index)
 {
-    float temperature;
-    float humidity;
+    if (voc_index <= 0) return "INVALID VOC INDEX";
+    else if (voc_index <= 10) return "unbelievable clean";
+    else if (voc_index <= 30) return "extremely clean";
+    else if (voc_index <= 50) return "higly clean";
+    else if (voc_index <= 70) return "very clean";
+    else if (voc_index <= 90) return "clean";
+    else if (voc_index <= 120) return "normal";
+    else if (voc_index <= 150) return "moderately polluted";
+    else if (voc_index <= 200) return "higly polluted";
+    else if (voc_index <= 300) return "extremely polluted";
 
-    TickType_t last_wakeup = xTaskGetTickCount();
-
-    // get the measurement duration for high repeatability;
-    uint8_t duration = sht4x_get_measurement_duration(&dev);
-
-    while (1)
-    {
-        // Trigger one measurement in single shot mode with high repeatability.
-        ESP_ERROR_CHECK(sht4x_start_measurement(&dev));
-
-        // Wait until measurement is ready (duration returned from *sht4x_get_measurement_duration*).
-        vTaskDelay(duration);
-
-        // retrieve the values and do something with them
-        ESP_ERROR_CHECK(sht4x_get_results(&dev, &temperature, &humidity));
-        printf("sht4x Sensor: %.2f °C, %.2f %%\n", temperature, humidity);
-
-        // wait until 5 seconds are over
-        vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(5000));
-    }
+    return "RUN!";
 }
 
-#else
-void task(void *pvParameters)
+void task_sht40_sgp30(void *pvParameters)
 {
+
     float temperature;
     float humidity;
+    sgp40_t sgp;
+    sht4x_t sht;
 
+    memset(&sht, 0, sizeof(sht4x_t));
+
+    // setup SHT40
+    ESP_ERROR_CHECK(sht4x_init_desc(&sht, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
+    ESP_ERROR_CHECK(sht4x_init(&sht));
+
+    // setup SGP40
+    memset(&sgp, 0, sizeof(sgp));
+    ESP_ERROR_CHECK(sgp40_init_desc(&sgp, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
+    ESP_ERROR_CHECK(sgp40_init(&sgp));
+    ESP_LOGI(TAG, "SGP40 initilalized. Serial: 0x%04x%04x%04x",
+            sgp.serial[0], sgp.serial[1], sgp.serial[2]);
+
+    // Wait until all set up
+    vTaskDelay(pdMS_TO_TICKS(250));
     TickType_t last_wakeup = xTaskGetTickCount();
 
     while (1)
     {
         // perform one measurement and do something with the results
-        ESP_ERROR_CHECK(sht4x_measure(&dev, &temperature, &humidity));
-        printf("sht4x Sensor: %.2f °C, %.2f %%\n", temperature, humidity);
+        ESP_ERROR_CHECK(sht4x_measure(&sht, &temperature, &humidity));
 
-        // wait until 5 seconds are over
-        vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(5000));
+	    // Get temperature and humidity values and feed it to SGP40
+		int32_t voc_index;
+		ESP_ERROR_CHECK(
+				sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
+
+		ESP_LOGI(TAG, "Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Air is [%s]",
+				temperature, humidity, voc_index, voc_index_name(voc_index));
+
+		// Wait until 1 seconds (VOC cycle time) are over.
+		vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));
+
     }
 }
 
-#endif
 
 void app_main()
 {
     ESP_ERROR_CHECK(i2cdev_init());
-    memset(&dev, 0, sizeof(sht4x_t));
-
-    ESP_ERROR_CHECK(sht4x_init_desc(&dev, 0, 4, 5));
-    ESP_ERROR_CHECK(sht4x_init(&dev));
-
-    xTaskCreatePinnedToCore(task, "sht4x_test", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(task_sht40_sgp30, "sht4x_test", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
 
 }

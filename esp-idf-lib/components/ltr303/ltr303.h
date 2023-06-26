@@ -40,9 +40,9 @@ extern "C" {
 #define LTR303_RESET					0x02
 
 
-#define CONFIG_LTR303_GAIN_1X
-#define CONFIG_LTR303_MEASUREMENT_RATE_50MS
-#define CONFIG_LTR303_INTEGRATION_TIME_100MS
+#define CONFIG_LTR303_GAIN_96X
+#define CONFIG_LTR303_MEASUREMENT_RATE_500MS
+#define CONFIG_LTR303_INTEGRATION_TIME_250MS
 
 #if defined CONFIG_LTR303_GAIN_1X
 	#define LTR303_LUX_RANGE			f64000
@@ -136,7 +136,7 @@ esp_err_t ltr303_init(ltr303_t *dev);
 * Returns true (1) if successful, false (0) if there was an I2C error
 * (Also see getError() below)
 */
-esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0, uint16_t *CH1);
+esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0_data_raw, uint16_t *CH1_data_raw);
 
 /*
 *  Convert raw data to lux
@@ -147,7 +147,7 @@ esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0, uint16_t *CH1);
 * returns true (1) if calculation was successful
 * returns false (0) AND lux = 0.0 IF EITHER SENSOR WAS SATURATED (0XFFFF)
 */
-esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,uint32_t *lux);
+esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,float *lux);
 
 
 #ifdef __cplusplus

@@ -100,11 +100,11 @@ void task_sht40_sgp30(void *pvParameters)
 		ESP_ERROR_CHECK(ltr303_sample_fetch(&ltr, &channel1, &channel2));
 
 		// Get the lux value
-		uint32_t lux;
+		float lux;
 		ESP_ERROR_CHECK(ltr303_get_lux(&ltr, channel1, channel2 , &lux));
 
-		ESP_LOGI(TAG, "Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Lux: %" PRIu32 ", Air is [%s]",
-		        temperature, humidity, voc_index, lux, voc_index_name(voc_index));
+		ESP_LOGI(TAG, "Lux: %.2f ,Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Air is [%s]",
+				lux,temperature, humidity, voc_index, voc_index_name(voc_index));
 
 		// Wait 1 second for next sensor reading
 		vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));

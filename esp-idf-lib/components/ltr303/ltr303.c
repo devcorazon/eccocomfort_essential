@@ -131,20 +131,21 @@ esp_err_t ltr303_init(ltr303_t *dev)
 * Returns true (1) if successful, false (0) if there was an I2C error
 * (Also see getError() below)
 */
-esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0, uint16_t *CH1)
+esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0_data_raw, uint16_t *CH1_data_raw)
 {
-	uint16_t CH00 = 0;
-	uint16_t CH01 = 0;
+	uint16_t channel0_data = 0;
+	uint16_t channel1_data = 0;
 
-	CHECK_ARG(dev && CH0 && CH1 );
+	CHECK_ARG(dev && CH0_data_raw && CH1_data_raw );
 //    I2C_DEV_TAKE_MUTEX(&dev->i2c_dev);
 //    I2C_DEV_CHECK(&dev->i2c_dev, enable(dev));
 
     // Read channel 1 and channel 2 ADC values
-    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_0, &CH00 ));
-    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_1, &CH01 ));
-	*CH0 = CH00;
-	*CH1 = CH01;
+    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_0, &channel0_data ));
+    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_1, &channel1_data ));
+
+    *CH0_data_raw = channel0_data;
+	*CH1_data_raw = channel1_data;
 
 //   I2C_DEV_CHECK(&dev->i2c_dev, disable(dev));
 //   I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
@@ -160,62 +161,21 @@ esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0, uint16_t *CH1)
 * returns true (1) if calculation was successful
 * returns false (0) AND lux = 0.0 IF EITHER SENSOR WAS SATURATED (0XFFFF)
 */
-esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,uint32_t *lux)
+esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,float *lux)
 {
 
-	float ratio, d0, d1;
-   // CHECK_ARG(dev && CH0_data_raw && CH1_data_raw);
+	float ratio;
 
-	// Determine if either sensor saturated (0xFFFF)
-	// If so, abandon ship (calculation will not be accurate)
-	if ((CH0_data_raw == 0xFFFF) || (CH1_data_raw == 0xFFFF)) {
-		*lux = 0;
-		return(false);
-	}
+	ratio = (float)CH1_data_raw / ((float)CH0_data_raw + (float)CH1_data_raw);
 
-	// Convert from unsigned integer to floating point
-	d0 = CH0_data_raw;
-	d1 = CH1_data_raw;
-
-
-	// We will need the ratio for subsequent calculations
-	ratio = d1 / d0;
-
-	// Normalize for integration time
-	d0 *= (402.0/ltr303_integration_time[LTR303_INTEGRATION_TIME]);
-	d1 *= (402.0/ltr303_integration_time[LTR303_INTEGRATION_TIME]);
-
-	// Normalize for gain
-	if (!ltr303_gain[LTR303_GAIN]) {
-		d0 *= 16;
-		d1 *= 16;
-	}
-
-	// Determine lux per datasheet equations:
-	if (ratio < 0.5) {
-		*lux = 0.0304 * 10 - 0.062 * 10 * pow(1,1.4);
-		return(true);
-	}
-//
-//	if (ratio < 0.61) {
-//		*lux = 0.0224 * d0 - 0.031 * d1;
-//		return(true);
-//	}
-//
-//	if (ratio < 0.80) {
-//		*lux = 0.0128 * d0 - 0.0153 * d1;
-//		return(true);
-//	}
-//
-//	if (ratio < 1.30) {
-//		*lux = 0.00146 * d0 - 0.00112 * d1;
-//		return(true);
-//	}
-//	// if (ratio > 1.30)
-////	*lux = 0.0;
-
-//    I2C_DEV_CHECK(&dev->i2c_dev, disable(dev));
-//    I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
+	if (ratio < 0.45f)
+		*lux = (1.7743f * (float)CH0_data_raw + 1.1059f * (float)CH1_data_raw) / ltr303_gain[LTR303_GAIN] / ltr303_integration_time[LTR303_INTEGRATION_TIME];
+	else if (ratio < 0.64f)
+		*lux = (4.2785f * (float)CH0_data_raw - 1.9548f * (float)CH1_data_raw) / ltr303_gain[LTR303_GAIN] / ltr303_integration_time[LTR303_INTEGRATION_TIME];
+	else if (ratio < 0.85f)
+		*lux = (0.5926f * (float)CH0_data_raw + 0.1185f * (float)CH1_data_raw) / ltr303_gain[LTR303_GAIN] / ltr303_integration_time[LTR303_INTEGRATION_TIME];
+	else
+		*lux = 0.f;
 
     return ESP_OK;
 }

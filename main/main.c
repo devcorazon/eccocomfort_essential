@@ -23,6 +23,8 @@
 #include <esp_err.h>
 #include <esp_log.h>
 
+#include "../esp-idf-lib/components/ltr303/ltr303.h"
+
 /* float is used in printf(). you need non-default configuration in
  * sdkconfig for ESP8266, which is enabled by default for this
  * example. see sdkconfig.defaults.esp8266
@@ -60,6 +62,7 @@ void task_sht40_sgp30(void *pvParameters)
     float humidity;
     sgp40_t sgp;
     sht4x_t sht;
+    ltr303_t ltr;
 
     memset(&sht, 0, sizeof(sht4x_t));
 
@@ -74,6 +77,11 @@ void task_sht40_sgp30(void *pvParameters)
     ESP_LOGI(TAG, "SGP40 initilalized. Serial: 0x%04x%04x%04x",
             sgp.serial[0], sgp.serial[1], sgp.serial[2]);
 
+    // set LTR303
+    memset(&ltr, 0, sizeof(ltr));
+    ESP_ERROR_CHECK(ltr303_init_desc(&ltr, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
+    ESP_ERROR_CHECK(ltr303_init(&ltr));
+
     // Wait until all set up
     vTaskDelay(pdMS_TO_TICKS(250));
     TickType_t last_wakeup = xTaskGetTickCount();
@@ -85,13 +93,20 @@ void task_sht40_sgp30(void *pvParameters)
 
 	    // Get temperature and humidity values and feed it to SGP40
 		int32_t voc_index;
-		ESP_ERROR_CHECK(
-				sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
+		ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
 
-		ESP_LOGI(TAG, "Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Air is [%s]",
-				temperature, humidity, voc_index, voc_index_name(voc_index));
+		// Get channel data for LTR303
+		uint16_t channel1,channel2;
+		ESP_ERROR_CHECK(ltr303_sample_fetch(&ltr, &channel1, &channel2));
 
-		// Wait until 1 seconds (VOC cycle time) are over.
+		// Get the lux value
+		uint32_t lux;
+		ESP_ERROR_CHECK(ltr303_get_lux(&ltr, channel1, channel2 , &lux));
+
+		ESP_LOGI(TAG, "Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Lux: %" PRIu32 ", Air is [%s]",
+		        temperature, humidity, voc_index, lux, voc_index_name(voc_index));
+
+		// Wait 1 second for next sensor reading
 		vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));
 
     }

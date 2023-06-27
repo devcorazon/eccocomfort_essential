@@ -49,6 +49,7 @@ void task_sensor_measure(void *pvParameters)
 
     float temperature;
     float humidity;
+	float lux;
 
     // init I2C and all sensors
     sensor_init();
@@ -66,13 +67,8 @@ void task_sensor_measure(void *pvParameters)
 		int32_t voc_index;
 		ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
 
-		// Get channel data for LTR303
-		uint16_t channel1,channel2;
-		ESP_ERROR_CHECK(ltr303_sample_fetch(&ltr, &channel1, &channel2));
-
 		// Get the lux value
-		float lux;
-		ESP_ERROR_CHECK(ltr303_get_lux(&ltr, channel1, channel2 , &lux));
+		ESP_ERROR_CHECK(ltr303_measure_lux(&ltr,&lux));
 
 		ESP_LOGI(TAG, "Lux: %.2f ,Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Air is [%s]",
 				lux,temperature, humidity, voc_index, voc_index_name(voc_index));

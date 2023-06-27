@@ -126,45 +126,23 @@ esp_err_t ltr303_init(ltr303_t *dev)
  //   I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
 
 }
-/* Gets the 16-bit channel 0 and channel 1 data
-* Default value of both channels is 0x00
-* Returns true (1) if successful, false (0) if there was an I2C error
-* (Also see getError() below)
-*/
-esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0_data_raw, uint16_t *CH1_data_raw)
-{
-	uint16_t channel0_data = 0;
-	uint16_t channel1_data = 0;
-
-	CHECK_ARG(dev && CH0_data_raw && CH1_data_raw );
-//    I2C_DEV_TAKE_MUTEX(&dev->i2c_dev);
-//    I2C_DEV_CHECK(&dev->i2c_dev, enable(dev));
-
-    // Read channel 1 and channel 2 ADC values
-    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_0, &channel0_data ));
-    I2C_DEV_CHECK(&dev->i2c_dev, read_register(dev, LTR303_DATA_CH0_1, &channel1_data ));
-
-    *CH0_data_raw = channel0_data;
-	*CH1_data_raw = channel1_data;
-
-//   I2C_DEV_CHECK(&dev->i2c_dev, disable(dev));
-//   I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
-
-   return ESP_OK;
-}
 /*
-*  Convert raw data to lux
-* gain: 0 (1X) or 7 (96X), see getControl()
-* integrationTime: integration time in ms, from getMeasurementRate()
-* CH0, CH1: results from getData()
+*  Convert raw data to lux and calculate lux
 * lux will be set to resulting lux calculation
 * returns true (1) if calculation was successful
 * returns false (0) AND lux = 0.0 IF EITHER SENSOR WAS SATURATED (0XFFFF)
 */
-esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,float *lux)
+esp_err_t ltr303_measure_lux(ltr303_t *dev,float *lux)
 {
-
+	uint16_t CH0_data_raw = 0;
+	uint16_t CH1_data_raw = 0;
 	float ratio;
+
+	CHECK_ARG(dev && lux);
+
+    // Read channel 1 and channel 2 ADC values
+    I2C_DEV_CHECK(&dev->i2c_dev, read_register_16(dev, LTR303_DATA_CH0_0, &CH0_data_raw ));
+    I2C_DEV_CHECK(&dev->i2c_dev, read_register_16(dev, LTR303_DATA_CH0_1, &CH1_data_raw ));
 
 	ratio = (float)CH1_data_raw / ((float)CH0_data_raw + (float)CH1_data_raw);
 

@@ -131,23 +131,12 @@ esp_err_t ltr303_free_desc(ltr303_t *dev);
 esp_err_t ltr303_init(ltr303_t *dev);
 
 /*
-* Gets the 16-bit channel 0 and channel 1 data
-* Default value of both channels is 0x00
-* Returns true (1) if successful, false (0) if there was an I2C error
-* (Also see getError() below)
-*/
-esp_err_t ltr303_sample_fetch(ltr303_t *dev,uint16_t *CH0_data_raw, uint16_t *CH1_data_raw);
-
-/*
-*  Convert raw data to lux
-* gain: 0 (1X) or 7 (96X), see getControl()
-* integrationTime: integration time in ms, from getMeasurementRate()
-* CH0, CH1: results from getData()
+*  Convert raw data to lux and calculate lux
 * lux will be set to resulting lux calculation
 * returns true (1) if calculation was successful
 * returns false (0) AND lux = 0.0 IF EITHER SENSOR WAS SATURATED (0XFFFF)
 */
-esp_err_t ltr303_get_lux(ltr303_t *dev,uint16_t CH0_data_raw, uint16_t CH1_data_raw,float *lux);
+esp_err_t ltr303_measure_lux(ltr303_t *dev,float *lux);
 
 
 #ifdef __cplusplus

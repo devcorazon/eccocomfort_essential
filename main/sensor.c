@@ -62,9 +62,11 @@ void task_sensor_measure(void *pvParameters)
         ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
         ESP_ERROR_CHECK(ltr303_measure_lux(&ltr, &lux));
 
+        set_temperature((int)temperature);
+        set_temperature((int)humidity);
         // Process and log the sensor readings
-   //     ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",
-    //             lux, temperature, humidity, voc_index, voc_index_name(voc_index));
+ //       ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",
+ //                lux, temperature, humidity, voc_index, voc_index_name(voc_index));
 
         // Wait 1 second for the next sensor reading
         vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));

@@ -16,6 +16,7 @@
 #include <sgp40.h>
 #include <ltr303.h>
 #include <ktd2027.h>
+#include <storage.h>
 
 #define I2C_MASTER_SDA_PIN 4
 #define I2C_MASTER_SCL_PIN 5

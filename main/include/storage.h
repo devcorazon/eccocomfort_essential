@@ -14,11 +14,12 @@ int storage_init(void);
 int storage_set_default(void);
 
 /// runtime data
+void set_temperature(int16_t temperature);
 int16_t get_temperature(void);
-int set_temperature(int16_t temperature);
 
-uint16_t get_relative_humidity(void);
-int set_relative_humidity(uint16_t relative_humidity);
+void set_relative_humidity(int16_t relative_humidity);
+int16_t get_relative_humidity(void);
+
 
 /// configuration settings
 uint8_t get_mode_set(void);

@@ -18,6 +18,7 @@
 
 void collaudo_task(void *pvParameters);
 static esp_err_t do_set_led_cmd(int argc, char **argv);
+static esp_err_t do_get_sensor_cmd(int argc, char **argv);
 
 #endif /* COLLAUDO_H */
 

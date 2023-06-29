@@ -13,12 +13,14 @@
 #include <esp_err.h>
 #include <esp_log.h>
 #include "main.h"
-#include "sensor.h"
 
 static const char *TAG = "ecocomfort-essential";
 
 void app_main()
 {
-    xTaskCreatePinnedToCore(task_sensor_measure, "sht4x_test", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+    // Create FreeRTOS task for the collaudo_task
+    xTaskCreatePinnedToCore(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
 
+    // Create FreeRTOS task for the task_sensor_measure
+    xTaskCreatePinnedToCore(task_sensor_measure, "task_sensor_measure", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
 }

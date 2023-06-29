@@ -5,6 +5,10 @@
  *      Author: youcef.benakmoume
  */
 
+#include "sensor.h"
+#include "collaudo.h"
+#include "storage.h"
+
 #ifndef MAIN_INCLUDE_MAIN_H_
 #define MAIN_INCLUDE_MAIN_H_
 

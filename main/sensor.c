@@ -6,37 +6,35 @@
  */
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <sht4x.h>
-#include <sgp40.h>
-#include <ltr303.h>
 #include <esp_err.h>
 #include <esp_log.h>
 #include "sensor.h"
 
 static const char *TAG = "sensor measure";
 
-sgp40_t sgp;
 sht4x_t sht;
+sgp40_t sgp;
 ltr303_t ltr;
+ktd2027_t ktd;
 
 esp_err_t sensor_init()
 {
-	//init i2c descriptors
-	ESP_ERROR_CHECK(i2cdev_init());
+    // Init I2C bus
+    ESP_ERROR_CHECK(i2cdev_init());
 
-	memset(&sht, 0, sizeof(sht4x_t));
-    // setup SHT40
+    // Initialize SHT40
+    memset(&sht, 0, sizeof(sht));
     ESP_ERROR_CHECK(sht4x_init_desc(&sht, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
     ESP_ERROR_CHECK(sht4x_init(&sht));
 
-    // setup SGP40
+    // Initialize SGP40
     memset(&sgp, 0, sizeof(sgp));
     ESP_ERROR_CHECK(sgp40_init_desc(&sgp, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
     ESP_ERROR_CHECK(sgp40_init(&sgp));
-    ESP_LOGI(TAG, "SGP40 initilalized. Serial: 0x%04x%04x%04x",
-            sgp.serial[0], sgp.serial[1], sgp.serial[2]);
+    ESP_LOGI(TAG, "SGP40 initialized. Serial: 0x%04x%04x%04x",
+             sgp.serial[0], sgp.serial[1], sgp.serial[2]);
 
-    // set LTR303
+    // Initialize LTR303
     memset(&ltr, 0, sizeof(ltr));
     ESP_ERROR_CHECK(ltr303_init_desc(&ltr, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
     ESP_ERROR_CHECK(ltr303_init(&ltr));
@@ -46,38 +44,33 @@ esp_err_t sensor_init()
 
 void task_sensor_measure(void *pvParameters)
 {
-
     float temperature;
     float humidity;
-	float lux;
+    float lux;
+    int32_t voc_index;
 
-    // init I2C and all sensors
-    sensor_init();
-
+    // Initialize I2C and all sensors
+    ESP_ERROR_CHECK(sensor_init());
     // Wait until all set up
     vTaskDelay(pdMS_TO_TICKS(250));
     TickType_t last_wakeup = xTaskGetTickCount();
 
     while (1)
     {
-        // perform one measurement and do something with the results
+        // Perform measurements
         ESP_ERROR_CHECK(sht4x_measure(&sht, &temperature, &humidity));
+        ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
+        ESP_ERROR_CHECK(ltr303_measure_lux(&ltr, &lux));
 
-	    // Get temperature and humidity values and feed it to SGP40
-		int32_t voc_index;
-		ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
+        // Process and log the sensor readings
+   //     ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",
+    //             lux, temperature, humidity, voc_index, voc_index_name(voc_index));
 
-		// Get the lux value
-		ESP_ERROR_CHECK(ltr303_measure_lux(&ltr,&lux));
-
-		ESP_LOGI(TAG, "Lux: %.2f ,Temperature: %.2f °C,Humidity: %.2f %%, VOC index: %" PRIi32 ", Air is [%s]",
-				lux,temperature, humidity, voc_index, voc_index_name(voc_index));
-
-		// Wait 1 second for next sensor reading
-		vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));
-
+        // Wait 1 second for the next sensor reading
+        vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));
     }
 }
+
 
 static const char *voc_index_name(int32_t voc_index)
 {
@@ -94,3 +87,4 @@ static const char *voc_index_name(int32_t voc_index)
 
     return "RUN!";
 }
+

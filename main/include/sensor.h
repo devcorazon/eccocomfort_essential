@@ -12,6 +12,10 @@
 #include <i2cdev.h>
 #include <esp_err.h>
 #include <string.h>
+#include <sht4x.h>
+#include <sgp40.h>
+#include <ltr303.h>
+#include <ktd2027.h>
 
 #define I2C_MASTER_SDA_PIN 4
 #define I2C_MASTER_SCL_PIN 5

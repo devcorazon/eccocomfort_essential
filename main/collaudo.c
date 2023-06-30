@@ -133,15 +133,14 @@ static esp_err_t do_get_sensor_cmd(int argc, char **argv)
 	   return ESP_FAIL;
 	}
 	const char *type = argv[1];
-	const char *state = argv[2];
 
 	if (strcmp(type, "temperature") == 0)
 	{
-		printf("Temperature =  %d C\n",get_temperature());
+		printf("Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(get_temperature()), TEMP_RAW_TO_DEC(get_temperature()));
 	}
 	else if (strcmp(type, "humidity") == 0)
 	{
-		printf("Temperature =  %d C\n",get_relative_humidity());
+		printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(get_relative_humidity()), RH_RAW_TO_DEC(get_relative_humidity()));
 	}
 	else
 	{

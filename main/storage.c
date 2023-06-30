@@ -67,7 +67,7 @@ void set_temperature(int16_t temperature)
 	application_data.runtime_data.temperature = temperature;
 }
 
-int16_t get_relative_humidity(void)
+uint16_t get_relative_humidity(void)
 {
 	return application_data.runtime_data.relative_humidity;
 }

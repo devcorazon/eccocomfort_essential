@@ -18,7 +18,7 @@ void set_temperature(int16_t temperature);
 int16_t get_temperature(void);
 
 void set_relative_humidity(int16_t relative_humidity);
-int16_t get_relative_humidity(void);
+uint16_t get_relative_humidity(void);
 
 
 /// configuration settings

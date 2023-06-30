@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_STRUCTS_H_
 #define SRC_INCLUDE_STRUCTS_H_
 
-//#include "types.h"
+#include "types.h"
 
 ///
 struct noinit_data_s {
@@ -17,7 +17,7 @@ struct noinit_data_s {
 
 struct runtime_data_s {
 	int16_t		temperature;
-	int16_t     relative_humidity;
+	uint16_t     relative_humidity;
 };
 
 ///

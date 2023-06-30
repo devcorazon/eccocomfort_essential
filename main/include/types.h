@@ -17,7 +17,7 @@
 #define VOC_SCALE								(1u)
 #define LUMINOSITY_SCALE						(1000u)
 
-#define SET_VALUE_TO_TEMP_RAW(val)				(uint16_t) (val * TEMPERATURE_SCALE)
+#define SET_VALUE_TO_TEMP_RAW(val)				(int16_t) (val * TEMPERATURE_SCALE)
 #define SET_VALUE_TO_RH_RAW(val)				(uint16_t) (val * RELATIVE_HUMIDITY_SCALE)
 
 #define TEMP_RAW_TO_INT(t)						(int16_t) (t / TEMPERATURE_SCALE)
@@ -32,7 +32,7 @@ enum {
     RH_THRESHOLD_SETTING_LOW					= 0x01,
     RH_THRESHOLD_SETTING_MEDIUM					= 0x02,
     RH_THRESHOLD_SETTING_HIGH					= 0x03,
-} rh_threshold_setting_e;
+};
 
 // Luminosity sensor setting
 enum {
@@ -40,7 +40,7 @@ enum {
     LUMINOSITY_SENSOR_SETTING_LOW				= 0x01,
     LUMINOSITY_SENSOR_SETTING_MEDIUM			= 0x02,
     LUMINOSITY_SENSOR_SETTING_HIGH				= 0x03,
-} luminosity_sensor_setting_e;
+};
 
 // VOC threshold setting
 enum {
@@ -48,7 +48,7 @@ enum {
 	VOC_THRESHOLD_SETTING_LOW					= 0x01,
 	VOC_THRESHOLD_SETTING_MEDIUM				= 0x02,
 	VOC_THRESHOLD_SETTING_HIGH					= 0x03,
-} voc_threshold_setting_e;
+};
 
 // Mode
 enum {
@@ -59,7 +59,7 @@ enum {
     MODE_AUTOMATIC_CYCLE  						= 0x04,
 	MODE_AUTOMATIC_CYCLE_EXTRA_CYCLE			= BIT(6),
 	MODE_AUTOMATIC_CYCLE_CALCULATE_DURATION		= BIT(7),
-} mode_e;
+};
 
 // Speed
 enum {
@@ -71,13 +71,13 @@ enum {
     SPEED_BOOST									= 0x05,
 	SPEED_AUTOMATIC_CYCLE_FORCE_BOOST			= BIT(6),
 	SPEED_AUTOMATIC_CYCLE_FORCE_NIGHT			= BIT(7),
-} speed_e;
+};
 
 // Direction of rotation state
 enum {
 	DIRECTION_NONE								= 0x00,
 	DIRECTION_OUT								= 0x01,
 	DIRECTION_IN								= 0x02,
-} direction_e;
+};
 
 #endif /* SRC_INCLUDE_TYPES_H_ */

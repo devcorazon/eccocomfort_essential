@@ -17,7 +17,9 @@ struct noinit_data_s {
 
 struct runtime_data_s {
 	int16_t		temperature;
-	uint16_t     relative_humidity;
+	uint16_t    relative_humidity;
+	int32_t     voc;
+	int16_t     lux;
 };
 
 ///

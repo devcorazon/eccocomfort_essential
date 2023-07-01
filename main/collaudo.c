@@ -4,15 +4,13 @@
  *  Created on: 29 juin 2023
  *      Author: youcef.benakmoume
  */
-#include <esp_err.h>
-#include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <stdbool.h>
 #include "collaudo.h"
-#include "ktd2027.h"
-#include "sensor.h"
 
-extern ktd2027_t ktd;
+
+static bool first_iteration = true;
 
 void collaudo_task(void *pvParameters)
 {
@@ -31,121 +29,81 @@ void collaudo_task(void *pvParameters)
 	ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
 	ESP_ERROR_CHECK(esp_console_start_repl(repl));
 
-	const esp_console_cmd_t cmd_set_led = {
-	   .command = "set_led",
-	   .help = "Set LED {color} {on/off}",
+	const esp_console_cmd_t cmd_test_led = {
+	   .command = "test_led",
+	   .help = "Test LED {index}",
 	   .hint = NULL,
-	   .func = do_set_led_cmd,
+	   .func = do_test_led_cmd,
 	 };
-	    const esp_console_cmd_t cmd_get_sensor = {
-	   .command = "get_sensor",
-	   .help = "Get Sensor (type)",
+	    const esp_console_cmd_t cmd_test_all = {
+	   .command = "test_all",
+	   .help = "Test Sensor",
 	   .hint = NULL,
-	    .func = do_get_sensor_cmd,
+	    .func = do_test_all_cmd,
 	 };
-	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_set_led));
-	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_get_sensor));
+	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_led));
+	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_all));
     // Suspend task after initializing the console.
     for(;;) {
        vTaskSuspend(NULL);
     }
 }
 
-
-static esp_err_t do_set_led_cmd(int argc, char **argv)
+static esp_err_t do_test_led_cmd(int argc, char **argv)
 {
-    if(argc < 3) {
-        printf("Invalid arguments. Usage: set_led <color> <on/off>\n");
+    if(argc < 2)
+    {
+        printf("Invalid arguments. Usage: test_led  <index>\n");
         return ESP_FAIL;
     }
-    const char *color = argv[1];
-    const char *state = argv[2];
+    const char *index = argv[1];
 
-    uint8_t led_mode;
-    uint8_t led_color;
-    uint16_t duration = 1000;
+    uint8_t mode;
+    uint8_t color;
 
-    if (strcmp(color, "red") == 0)
+    if (strcmp(index, "0") == 0)
     {
-    	led_color = RGB_LED_COLOR_RED;
+   	color = RGB_LED_COLOR_NONE;
+  	mode = RGB_LED_MODE_OFF;
     }
-    else if (strcmp(color, "green") == 0)
+    else if (strcmp(index, "1") == 0)
     {
-    	led_color = RGB_LED_COLOR_GREEN;
+        color = RGB_LED_COLOR_RED;
+    	mode = RGB_LED_MODE_ON;
     }
-    else if (strcmp(color, "blue") == 0)
+    else if (strcmp(index, "2") == 0)
     {
-    	led_color = RGB_LED_COLOR_BLUE;
+    	color = RGB_LED_COLOR_GREEN;
+    	mode = RGB_LED_MODE_ON;
     }
-    else if (strcmp(color, "all") == 0)
+    else if (strcmp(index, "3") == 0)
     {
-        // Handle 'all' case separately
-    	led_color = RGB_LED_COLOR_ALL;
+    	color = RGB_LED_COLOR_BLUE;
+    	mode = RGB_LED_MODE_ON;
     }
     else
     {
-        printf("Invalid color. Supported colors: red, green, blue, all\n");
+        printf("Invalid index. Supported colors: 0, 1, 2, 3\n");
         return ESP_FAIL;
     }
 
-    if (strcmp(state, "on") == 0)
-    {
-    	led_mode = RGB_LED_MODE_ON;
-    }
-    else if (strcmp(state, "off") == 0)
-    {
-    	led_mode = RGB_LED_MODE_OFF;
-    }
-    else if (strcmp(state, "blink") == 0)
-    {
-    	led_mode = RGB_LED_MODE_BLINK;
-    }
-    else
-    {
-        printf("Invalid state. Supported states: on, off, blink\n");
-        return ESP_FAIL;
-    }
+	if ( first_iteration == true)
+	{
+		// Initialization of RGB LED
+		ESP_ERROR_CHECK(rgb_led_init());
+		first_iteration = false;
+	}
+    ESP_ERROR_CHECK(rgb_led_set(color,mode));
 
-    if (led_color == RGB_LED_COLOR_ALL && led_mode == RGB_LED_MODE_ON )
-    {
-        // Handle 'all' case by iterating over all LEDs
-         printf("all led on");
-    }
-    else if (led_color == RGB_LED_COLOR_ALL && led_mode == RGB_LED_MODE_OFF )
-    {
-        // Handle 'all' case by iterating over all LEDs
-         printf("all led off");
-    }
-    else
-    {
-        // Handle " one led "
-    	printf("ok im in led %d",led_color);
-   // 	ktd2027_led_set(&ktd, led_color, led_mode, duration);
-    }
     return ESP_OK;
 }
 
-static esp_err_t do_get_sensor_cmd(int argc, char **argv)
+static esp_err_t do_test_all_cmd(int argc, char **argv)
 {
-	if(argc < 2)
-	{
-	   printf("Invalid arguments. Usage: get_sensor <type>\n");
-	   return ESP_FAIL;
-	}
-	const char *type = argv[1];
+    printf("Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(get_temperature()), TEMP_RAW_TO_DEC(get_temperature()));
+	printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(get_relative_humidity()), RH_RAW_TO_DEC(get_relative_humidity()));
+	printf("VOC Index =  %ld \n", get_voc());
+	printf("LUX =  %u.%01u %%\n", RH_RAW_TO_INT(get_lux()), RH_RAW_TO_DEC(get_lux()));
 
-	if (strcmp(type, "temperature") == 0)
-	{
-		printf("Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(get_temperature()), TEMP_RAW_TO_DEC(get_temperature()));
-	}
-	else if (strcmp(type, "humidity") == 0)
-	{
-		printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(get_relative_humidity()), RH_RAW_TO_DEC(get_relative_humidity()));
-	}
-	else
-	{
-		printf("Invalid sensor. Supported sensors: temperature, humidity\n");
-		return ESP_FAIL;
-	}
 	return ESP_OK;
 }

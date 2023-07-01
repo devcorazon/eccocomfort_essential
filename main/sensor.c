@@ -6,8 +6,6 @@
  */
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <esp_err.h>
-#include <esp_log.h>
 #include "sensor.h"
 
 static const char *TAG = "sensor measure";
@@ -15,7 +13,6 @@ static const char *TAG = "sensor measure";
 sht4x_t sht;
 sgp40_t sgp;
 ltr303_t ltr;
-ktd2027_t ktd;
 
 esp_err_t sensor_init()
 {
@@ -64,6 +61,9 @@ void task_sensor_measure(void *pvParameters)
 
         set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
         set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
+        set_voc(voc_index);
+        set_lux(SET_VALUE_TO_RH_RAW(lux));
+
         // Process and log the sensor readings
  //       ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",
  //                lux, temperature, humidity, voc_index, voc_index_name(voc_index));

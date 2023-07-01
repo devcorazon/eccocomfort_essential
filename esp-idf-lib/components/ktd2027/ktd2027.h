@@ -105,7 +105,7 @@ esp_err_t ktd2027_init(ktd2027_t *dev);
  * @param uint16_t duration
  * @return `ESP_OK` on success
  */
-esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode, uint16_t duration);
+esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode);
 #ifdef __cplusplus
 }
 #endif

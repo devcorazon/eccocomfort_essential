@@ -101,9 +101,9 @@ esp_err_t ktd2027_init(ktd2027_t *dev)
  * @param uint16_t duration
  * @return `ESP_OK` on success
  */
-esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode,uint16_t duration)
+esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode)
 {
-	CHECK_ARG(dev && color && mode && duration);
+	CHECK_ARG(dev);
 
 	switch (mode)
 	{
@@ -116,7 +116,7 @@ esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode,uint16_t du
 
 		if (color == RGB_LED_COLOR_RED)
 		{
-			I2C_DEV_CHECK(&dev->i2c_dev,write_register(&dev, KTD2027_REG_LED_EN, KTD2027_RED_LED_EN));
+			I2C_DEV_CHECK(&dev->i2c_dev,write_register(dev, KTD2027_REG_LED_EN, KTD2027_RED_LED_EN));
 		}
 		else if (color == RGB_LED_COLOR_GREEN)
 		{
@@ -126,9 +126,6 @@ esp_err_t ktd2027_led_set(ktd2027_t *dev,uint8_t color, uint8_t mode,uint16_t du
 		{
 			I2C_DEV_CHECK(&dev->i2c_dev,write_register(dev, KTD2027_REG_LED_EN, KTD2027_BLUE_LED_EN));
 		}
-		break;
-	case RGB_LED_MODE_BLINK:
-		// code for RGB_LED_MODE_BLINK
 		break;
 	default:
 		// code for default case

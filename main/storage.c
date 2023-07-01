@@ -6,11 +6,7 @@
  */
 
 #include <freertos/FreeRTOS.h>
-
-#include <string.h>
-
 #include "storage.h"
-#include "storage_internal.h"
 
 // Data on ram.
 //static __attribute__((section(".noinit"))) struct application_data_s application_data;
@@ -75,6 +71,26 @@ uint16_t get_relative_humidity(void)
 void set_relative_humidity(int16_t relative_humidity)
 {
 	application_data.runtime_data.relative_humidity = relative_humidity;
+}
+
+int32_t get_voc(void)
+{
+	return application_data.runtime_data.voc;
+}
+
+void set_voc(int32_t voc)
+{
+	application_data.runtime_data.voc = voc;
+}
+
+int16_t get_lux(void)
+{
+	return application_data.runtime_data.lux;
+}
+
+void set_lux(int16_t lux)
+{
+	application_data.runtime_data.lux = lux;
 }
 
 /// configuration settings

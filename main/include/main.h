@@ -5,9 +5,13 @@
  *      Author: youcef.benakmoume
  */
 
+#include <string.h>
+#include <stdio.h>
+#include <esp_err.h>
+#include <esp_log.h>
 #include "sensor.h"
+#include "rgb_led.h"
 #include "collaudo.h"
-#include "storage.h"
 
 #ifndef MAIN_INCLUDE_MAIN_H_
 #define MAIN_INCLUDE_MAIN_H_

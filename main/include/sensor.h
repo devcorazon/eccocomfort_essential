@@ -15,19 +15,12 @@
 #include <sht4x.h>
 #include <sgp40.h>
 #include <ltr303.h>
+#include <ntc_adc.h>
 #include <storage.h>
+#include <stdint.h>
 
 #define I2C_MASTER_SDA_PIN 4
 #define I2C_MASTER_SCL_PIN 5
-
-// ADD channel number
-#define NTC_ADC_CHANNEL 6
-// ADC channel resolution
-#define NTC_ADC_RESOLUTION ADC_WIDTH_BIT_12
-// NTC resistance at 25 degrees Celsius
-#define NTC_R25 10000
-// ADC voltage reference in millivolts
-#define ADC_VREF 3300
 
 esp_err_t sensor_init();
 void task_sensor_measure(void *pvParameters);

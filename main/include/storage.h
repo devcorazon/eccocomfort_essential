@@ -28,6 +28,9 @@ int32_t get_voc(void);
 void set_lux(int16_t lux);
 int16_t get_lux(void);
 
+void set_ntc_temperature(int16_t ntc_temperature);
+int16_t get_ntc_temperature(void);
+
 
 /// configuration settings
 uint8_t get_mode_set(void);

@@ -5,8 +5,9 @@
  *      Author: youcef.benakmoume
  */
 #include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <freertos/task.h>*
 #include "sensor.h"
+
 
 static const char *TAG = "sensor measure";
 
@@ -36,6 +37,9 @@ esp_err_t sensor_init()
     ESP_ERROR_CHECK(ltr303_init_desc(&ltr, 0, I2C_MASTER_SDA_PIN, I2C_MASTER_SCL_PIN));
     ESP_ERROR_CHECK(ltr303_init(&ltr));
 
+    // Initialize NTC ( ADC )
+    ESP_ERROR_CHECK(ntc_adc_init());
+
     return ESP_OK;
 }
 
@@ -45,6 +49,7 @@ void task_sensor_measure(void *pvParameters)
     float humidity;
     float lux;
     int32_t voc_index;
+    int16_t ntc_temperature;
 
     // Initialize I2C and all sensors
     ESP_ERROR_CHECK(sensor_init());
@@ -58,11 +63,13 @@ void task_sensor_measure(void *pvParameters)
         ESP_ERROR_CHECK(sht4x_measure(&sht, &temperature, &humidity));
         ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
         ESP_ERROR_CHECK(ltr303_measure_lux(&ltr, &lux));
+        ESP_ERROR_CHECK(ntc_adc_temperature(&ntc_temperature));
 
         set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
         set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
         set_voc(voc_index);
         set_lux(SET_VALUE_TO_RH_RAW(lux));
+        set_ntc_temperature(ntc_temperature);
 
         // Process and log the sensor readings
  //       ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",

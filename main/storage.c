@@ -93,6 +93,15 @@ void set_lux(int16_t lux)
 	application_data.runtime_data.lux = lux;
 }
 
+int16_t get_ntc_temperature(void)
+{
+	return application_data.runtime_data.ntc_temperature;
+}
+void set_ntc_temperature(int16_t ntc_temperature)
+{
+	application_data.runtime_data.ntc_temperature = ntc_temperature;
+}
+
 /// configuration settings
 uint8_t get_mode_set(void)
 {

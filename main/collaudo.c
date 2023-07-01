@@ -104,6 +104,7 @@ static esp_err_t do_test_all_cmd(int argc, char **argv)
 	printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(get_relative_humidity()), RH_RAW_TO_DEC(get_relative_humidity()));
 	printf("VOC Index =  %ld \n", get_voc());
 	printf("LUX =  %u.%01u %%\n", RH_RAW_TO_INT(get_lux()), RH_RAW_TO_DEC(get_lux()));
+	printf("NTCT Temperature =  %d \n", get_ntc_temperature());
 
 	return ESP_OK;
 }

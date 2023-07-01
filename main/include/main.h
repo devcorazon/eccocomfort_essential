@@ -11,6 +11,7 @@
 #include <esp_log.h>
 #include "sensor.h"
 #include "rgb_led.h"
+#include "ir_receiver.h"
 #include "collaudo.h"
 
 #ifndef MAIN_INCLUDE_MAIN_H_

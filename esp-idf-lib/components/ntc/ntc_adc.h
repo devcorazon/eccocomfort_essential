@@ -20,8 +20,6 @@
 extern "C" {
 #endif
 
-// ADD channel number
-#define NTC_ADC_CHANNEL 6
 // ADC channel resolution
 #define NTC_ADC_RESOLUTION ADC_WIDTH_BIT_12
 // NTC resistance at 25 degrees Celsius

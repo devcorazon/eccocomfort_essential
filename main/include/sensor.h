@@ -23,7 +23,7 @@
 #define I2C_MASTER_SCL_PIN 5
 
 esp_err_t sensor_init();
-void task_sensor_measure(void *pvParameters);
+void sensor_measure_task(void *pvParameters);
 static const char *voc_index_name(int32_t voc_index);
 
 #endif /* MAIN_INCLUDE_SENSOR_H_ */

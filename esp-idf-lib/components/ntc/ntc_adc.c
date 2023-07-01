@@ -7,8 +7,6 @@
 
 #include "ntc_adc.h"
 
-#define I2C_FREQ_HZ 1000000 // 1MHz
-
 static const char *TAG = "ntc_adc";
 
 /**

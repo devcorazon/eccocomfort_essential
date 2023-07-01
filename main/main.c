@@ -18,5 +18,8 @@ void app_main()
     xTaskCreatePinnedToCore(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
 
     // Create FreeRTOS task for the task_sensor_measure
-    xTaskCreatePinnedToCore(task_sensor_measure, "task_sensor_measure", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(sensor_measure_task, "sensor_measure_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+
+    // Create IR Receiver task to receving IR commands
+    xTaskCreatePinnedToCore(ir_receive_task, "ir_receive_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
 }

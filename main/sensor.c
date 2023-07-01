@@ -43,7 +43,7 @@ esp_err_t sensor_init()
     return ESP_OK;
 }
 
-void task_sensor_measure(void *pvParameters)
+void sensor_measure_task(void *pvParameters)
 {
     float temperature;
     float humidity;

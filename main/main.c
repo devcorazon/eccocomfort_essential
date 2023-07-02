@@ -14,12 +14,13 @@ static const char *TAG = "ecocomfort-essential";
 
 void app_main()
 {
-    // Create FreeRTOS task for the collaudo_task
-    xTaskCreatePinnedToCore(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+	// Create FreeRTOS task for the collaudo_task
+	xTaskCreate(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
-    // Create FreeRTOS task for the task_sensor_measure
-    xTaskCreatePinnedToCore(sensor_measure_task, "sensor_measure_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+	// Create FreeRTOS task for the task_sensor_measure
+	xTaskCreate(sensor_measure_task, "sensor_measure_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
-    // Create IR Receiver task to receving IR commands
-    xTaskCreatePinnedToCore(ir_receive_task, "ir_receive_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, APP_CPU_NUM);
+	// Create IR Receiver task to receiving IR commands
+	xTaskCreate(ir_receive_task, "ir_receive_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
+
 }

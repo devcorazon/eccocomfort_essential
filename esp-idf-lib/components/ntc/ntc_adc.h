@@ -20,16 +20,20 @@
 extern "C" {
 #endif
 
+// Number of ADC sample in order to get an adc value
+#define NO_OF_SAMPLE 64
+// ADC channel number
+#define NTC_ADC_CHANNEL ADC1_CHANNEL_3
 // ADC channel resolution
 #define NTC_ADC_RESOLUTION ADC_WIDTH_BIT_12
-// NTC resistance at 25 degrees Celsius
-#define NTC_R25 10000
-// ADC voltage reference in millivolts
-#define ADC_VREF 3300
 // Update this value based on your hardware specification
 #define NTC_ADC_LEG_RESISTANCE 10000
+// ADC Unit
+#define NTC_ADC_UNIT ADC_UNIT_1
+// ADC attenuation parameter
+#define NTC_ADC_ATTEN ADC_ATTEN_DB_11
 
-#define TEMPERATURE_SCALE 1 // Define the temperature scale here
+#define TEMPERATURE_SCALE 100 // Define the temperature scale here
 
 typedef struct {
     uint32_t resistance;

@@ -11,19 +11,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <esp_err.h>
-#include "freertos/FreeRTOS.h"
-#include "esp_log.h"
 #include "driver/rmt.h"
-#include "freertos/ringbuf.h"
-
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define RMT_RX_CHANNEL RMT_CHANNEL_0
+#define RMT_RX_CHANNEL RMT_CHANNEL_2
 #define RMT_RX_GPIO_NUM 2
+#define RMT_TICK_10_US (10000) // RMT counter value for 10 us tick
+#define RMT_RX_BUFFER_SIZE 100
+
 
 /**
  * @brief Initialize the IR receiver
@@ -39,13 +38,11 @@ esp_err_t ir_receiver_init();
  *
  * This function reads the duration and level of the IR signal from the IR receiver.
  *
- * @param duration Pointer to a uint32_t where the duration of the signal will be stored.
- * @param level Pointer to a bool where the level of the signal will be stored.
+ * @param item Pointer to an array of rmt_item32_t structures where the received IR items will be stored.
+ * @param item_num Number of items in the array.
  * @return ESP_OK if the reading is successful, ESP_FAIL otherwise.
  */
-esp_err_t ir_receiver_read(uint32_t *duration, bool *level);
-
-
+esp_err_t ir_receiver_read(rmt_item32_t* item, int item_num);
 /**
  * @brief The IR receiver task
  *

@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 
-#if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
+//#if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
 /*---------------------------------------------------------------
             Curve Fitting Calibration Scheme
 ---------------------------------------------------------------*/
@@ -54,7 +54,7 @@ esp_err_t adc_cali_create_scheme_curve_fitting(const adc_cali_curve_fitting_conf
  *        - ESP_ERR_INVALID_ARG:   Invalid argument
  */
 esp_err_t adc_cali_delete_scheme_curve_fitting(adc_cali_handle_t handle);
-#endif  //  #if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
+//#endif  //  #if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
 
 
 #if ADC_CALI_SCHEME_LINE_FITTING_SUPPORTED

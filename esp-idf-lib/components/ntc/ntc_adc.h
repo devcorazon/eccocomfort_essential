@@ -13,6 +13,8 @@
 #include <esp_err.h>
 
 #include "../esp_adc/include/esp_adc/adc_oneshot.h"
+#include "../esp_adc/include/esp_adc/adc_cali.h"
+#include "../esp_adc/include/esp_adc/adc_cali_scheme.h"
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 
@@ -23,16 +25,13 @@ extern "C" {
 
 // Number of ADC sample in order to get an adc value
 #define NO_OF_SAMPLE 64
-// ADC channel number
-#define NTC_ADC_CHANNEL ADC1_CHANNEL_3
-// ADC channel resolution
-#define NTC_ADC_RESOLUTION ADC_WIDTH_BIT_12
 // Update this value based on your hardware specification
 #define NTC_ADC_LEG_RESISTANCE 10000
-// ADC Unit
-#define NTC_ADC_UNIT ADC_UNIT_1
-// ADC attenuation parameter
-#define NTC_ADC_ATTEN ADC_ATTEN_DB_11
+
+#define ADC_UNIT ADC_UNIT_1
+#define ADC_ATTEN ADC_ATTEN_DB_11
+#define ADC_BITWIDTH ADC_BITWIDTH_12
+#define ADC_CHANNEL ADC_CHANNEL_3
 
 #define TEMPERATURE_SCALE 100 // Define the temperature scale here
 

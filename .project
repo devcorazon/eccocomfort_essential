@@ -164,6 +164,31 @@
 			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp-tls/esp_tls_mbedtls.c</location>
 		</link>
 		<link>
+			<name>build/ide/esp_idf_components/esp_adc/adc_cali.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/adc_cali.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/adc_cali_curve_fitting.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/adc_cali_curve_fitting.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/adc_common.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/adc_common.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/adc_continuous.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/adc_continuous.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/adc_oneshot.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/adc_oneshot.c</location>
+		</link>
+		<link>
 			<name>build/ide/esp_idf_components/esp_app_format/esp_app_desc.c</name>
 			<type>1</type>
 			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_app_format/esp_app_desc.c</location>
@@ -1249,6 +1274,16 @@
 			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp-tls/esp-tls-crypto/esp_tls_crypto.c</location>
 		</link>
 		<link>
+			<name>build/ide/esp_idf_components/esp_adc/deprecated/esp_adc_cal_common_legacy.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/deprecated/esp_adc_cal_common_legacy.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/esp32c3/curve_fitting_coefficients.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/esp32c3/curve_fitting_coefficients.c</location>
+		</link>
+		<link>
 			<name>build/ide/esp_idf_components/esp_common/src/esp_err_to_name.c</name>
 			<type>1</type>
 			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_common/src/esp_err_to_name.c</location>
@@ -2012,6 +2047,11 @@
 			<name>build/ide/esp_idf_components/cmock/CMock/src/cmock.c</name>
 			<type>1</type>
 			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/cmock/CMock/src/cmock.c</location>
+		</link>
+		<link>
+			<name>build/ide/esp_idf_components/esp_adc/deprecated/esp32c3/esp_adc_cal_legacy.c</name>
+			<type>1</type>
+			<location>C:/Users/youcef.benakmoume/esp-idf-v5.0.1/components/esp_adc/deprecated/esp32c3/esp_adc_cal_legacy.c</location>
 		</link>
 		<link>
 			<name>build/ide/esp_idf_components/esp_http_server/src/util/ctrl_sock.c</name>

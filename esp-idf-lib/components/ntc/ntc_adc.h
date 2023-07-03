@@ -11,7 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <esp_err.h>
-#include "driver/adc.h"
+
+#include "../esp_adc/include/esp_adc/adc_oneshot.h"
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 

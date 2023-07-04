@@ -41,8 +41,15 @@ void collaudo_task(void *pvParameters)
 	   .hint = NULL,
 	    .func = do_test_all_cmd,
 	 };
+	 const esp_console_cmd_t cmd_test_fan = {
+	   .command = "test_fan",
+	   .help = "Test Fan {index}",
+	   .hint = NULL,
+	   .func = do_test_fan_cmd,
+	 };
 	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_led));
 	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_all));
+	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_fan));
     // Suspend task after initializing the console.
     for(;;) {
        vTaskSuspend(NULL);
@@ -107,4 +114,78 @@ static esp_err_t do_test_all_cmd(int argc, char **argv)
 	printf("NTCT Temperature =  %d \n", get_ntc_temperature());
 
 	return ESP_OK;
+}
+
+static esp_err_t do_test_fan_cmd(int argc, char **argv)
+{
+    if(argc < 2)
+    {
+        printf("Invalid arguments. Usage: test_fan <index>\n");
+        return ESP_FAIL;
+    }
+    const char *index = argv[1];
+    int speed;
+    FanDirection direction;
+
+    if (strcmp(index, "0") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_NONE_IN;
+        direction = FAN_STOP;
+    }
+    else if (strcmp(index, "1") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_SLEEP_IN;
+        direction = FAN_IN;
+    }
+    else if (strcmp(index, "2") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_LOW_IN;
+        direction = FAN_IN;
+    }
+    else if (strcmp(index, "3") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_MEDIUM_IN;
+        direction = FAN_IN;
+    }
+    else if (strcmp(index, "4") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_HIGH_IN;
+        direction = FAN_IN;
+    }
+    else if (strcmp(index, "5") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_SLEEP_OUT;
+        direction = FAN_OUT;
+    }
+    else if (strcmp(index, "6") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_LOW_OUT;
+        direction = FAN_OUT;
+    }
+    else if (strcmp(index, "7") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_MEDIUM_OUT;
+        direction = FAN_OUT;
+    }
+    else if (strcmp(index, "8") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_HIGH_OUT;
+        direction = FAN_OUT;
+    }
+    else if (strcmp(index, "9") == 0)
+    {
+        speed = FAN_PWM_PULSE_SPEED_BOOST_OUT;
+        direction = FAN_OUT;
+    }
+    else
+    {
+        printf("Invalid index. Supported fan speeds: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9\n");
+        return ESP_FAIL;
+    }
+
+    // Assume that fan_speed and fan_direction are set somewhere else
+    fan_set_speed(speed);
+    fan_set_direction(direction);
+
+    return ESP_OK;
 }

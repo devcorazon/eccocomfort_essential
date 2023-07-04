@@ -28,12 +28,21 @@ int32_t get_voc(void);
 void set_lux(int16_t lux);
 int16_t get_lux(void);
 
-void set_ntc_temperature(int16_t ntc_temperature);
 int16_t get_ntc_temperature(void);
+void set_ntc_temperature(int16_t ntc_temperature);
 
+void set_mode_state(uint8_t mode_state);
+uint8_t get_mode_state(void);
+
+void set_speed_state(uint8_t speed_state);
+uint8_t get_speed_state(void);
 
 /// configuration settings
+void set_mode_set(uint8_t mode_set);
 uint8_t get_mode_set(void);
-int set_mode_set(uint8_t mode_set);
+
+void set_speed_set(uint8_t speed_set);
+uint8_t get_speed_set(void);
+
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

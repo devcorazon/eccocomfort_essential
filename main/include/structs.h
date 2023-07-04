@@ -21,6 +21,8 @@ struct runtime_data_s {
 	int32_t     voc;
 	int16_t     lux;
 	int16_t     ntc_temperature;
+	uint8_t     mode_state;
+	uint8_t     speed_state;
 };
 
 ///

@@ -97,9 +97,30 @@ int16_t get_ntc_temperature(void)
 {
 	return application_data.runtime_data.ntc_temperature;
 }
+
 void set_ntc_temperature(int16_t ntc_temperature)
 {
 	application_data.runtime_data.ntc_temperature = ntc_temperature;
+}
+
+uint8_t get_mode_state(void)
+{
+	return application_data.runtime_data.mode_state;
+}
+
+void set_mode_state(uint8_t mode_state)
+{
+	application_data.runtime_data.mode_state = mode_state;
+}
+
+uint8_t get_speed_state(void)
+{
+	return application_data.runtime_data.speed_state;
+}
+
+void set_speed_state(uint8_t speed_state)
+{
+	application_data.runtime_data.speed_state = speed_state;
 }
 
 /// configuration settings
@@ -108,12 +129,23 @@ uint8_t get_mode_set(void)
 	return application_data.configuration_settings.mode_set;
 }
 
-int set_mode_set(uint8_t mode_set)
+void set_mode_set(uint8_t mode_set)
 {
 	application_data.configuration_settings.mode_set = mode_set;
 
 	/*TODO*/
 	// save on NVS
+}
 
-	return 0;
+uint8_t get_speed_set(void)
+{
+	return application_data.configuration_settings.speed_set;
+}
+
+void set_speed_set(uint8_t speed_set)
+{
+	application_data.configuration_settings.speed_set = speed_set;
+
+	/*TODO*/
+	// save on NVS
 }

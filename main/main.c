@@ -23,4 +23,7 @@ void app_main()
 	// Create IR Receiver task to receiving IR commands
 	xTaskCreate(ir_receive_task, "ir_receive_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
+	// Create Fan task
+	xTaskCreate(fan_task, "fan task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
+
 }

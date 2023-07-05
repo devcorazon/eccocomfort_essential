@@ -26,4 +26,7 @@ void app_main()
 	// Create Fan task
 	xTaskCreate(fan_task, "fan task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
+	// Create RGB Led task
+	xTaskCreate(rgb_led_task, "rgb_led_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
+
 }

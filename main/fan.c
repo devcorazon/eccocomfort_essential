@@ -1,10 +1,12 @@
 #include "fan.h"
 
-static int fan_speed = 0;
-static FanDirection fan_direction = FAN_STOP;
+
+static esp_err_t fan_pwm_init();
 static bool fan_initialized = false;
 
-esp_err_t fan_pwm_init()
+static int fan_speed = 0;
+
+static esp_err_t fan_pwm_init()
 {
     // Prepare and then apply the LEDC PWM timer configuration
     ledc_timer_config_t ledc_timer =
@@ -12,7 +14,7 @@ esp_err_t fan_pwm_init()
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .timer_num = LEDC_TIMER_0,
         .duty_resolution = LEDC_TIMER_13_BIT,  // Use 13-bit resolution for more granularity
-        .freq_hz = (USEC_PER_SEC / FAN_PWM_PERIOD), // Set frequency of pwm
+        .freq_hz = FAN_FREQUENCE, // Set frequency of pwm
     };
     ledc_timer_config(&ledc_timer);
 
@@ -24,40 +26,45 @@ esp_err_t fan_pwm_init()
         .channel = LEDC_CHANNEL_0,
         .intr_type = LEDC_INTR_DISABLE,
         .timer_sel = LEDC_TIMER_0,
-        .duty = FAN_PWM_PULSE_SPEED_NONE_IN, // Set initial duty cycle to NONE speed
+        .duty = FAN_PWM_PULSE_SPEED_NONE_IN , // Set initial duty cycle to 0
     };
     ledc_channel_config(&pwm_config);
+
+    esp_rom_gpio_pad_select_gpio(FAN_DIRECTION_PIN);
+    gpio_set_direction(FAN_DIRECTION_PIN, GPIO_MODE_OUTPUT);
 
     fan_initialized = true;
 
     return ESP_OK;
 }
 
-esp_err_t fan_set_speed(int speed_level)
+esp_err_t fan_set(uint8_t direction,uint8_t speed)
 {
 	if(!fan_initialized)
 	{
 	   fan_pwm_init();
 	}
+    // setting direction
+    gpio_set_level(FAN_DIRECTION_PIN, (int)direction);
 
 	// Check speed level bounds
-    if (speed_level < 0)
+    if (speed < 0)
     {
-        speed_level = 0;
+    	speed = 0;
     }
-    else if (speed_level > 5)
+    else if (speed > 5)
     {
-        speed_level = 5;
+    	speed = 5;
     }
 
     // Choose direction pulse width
-    if (fan_direction == FAN_IN)
+    if (direction == FAN_IN)
     {
-        fan_speed = fan_pwm_pulse_in[speed_level];
+        fan_speed = fan_pwm_pulse_in[speed];
     }
     else
     {
-        fan_speed = fan_pwm_pulse_out[speed_level];
+        fan_speed = fan_pwm_pulse_out[speed];
     }
 
     // Set the duty cycle
@@ -65,27 +72,16 @@ esp_err_t fan_set_speed(int speed_level)
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 
     // Set values to the runtime struct
-    set_mode_state(fan_direction);
+    set_mode_state(direction);
     set_speed_state(fan_speed);
 
-    return ESP_OK;
-}
-
-esp_err_t fan_set_direction(FanDirection direction)
-{
-    fan_direction = direction;
-    gpio_set_level(FAN_DIRECTION_PIN, (int)fan_direction);
-
-    return ESP_OK;
+	return ESP_OK;
 }
 
 void fan_task(void *pvParameters)
 {
     // init fan
     fan_pwm_init();
-
-    esp_rom_gpio_pad_select_gpio(FAN_DIRECTION_PIN);
-    gpio_set_direction(FAN_DIRECTION_PIN, GPIO_MODE_OUTPUT);
 
     while (1)
     {

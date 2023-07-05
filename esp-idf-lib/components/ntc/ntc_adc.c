@@ -52,11 +52,11 @@ esp_err_t ntc_adc_init()
 esp_err_t ntc_adc_temperature(int16_t *temperature)
 {
 	 ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN3, &adc_raw[0][1]));
-	 ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, adc_raw[0][1]);
+//	 ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, adc_raw[0][1]);
 	 if (do_calibration1)
 	 {
 	 ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw[0][1], &voltage[0][1]));
-	 ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, voltage[0][1]);
+//	 ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, voltage[0][1]);
 	 }
 
 	 uint32_t tmp = adc_raw[0][1] * NTC_ADC_LEG_RESISTANCE;
@@ -115,7 +115,7 @@ esp_err_t ntc_adc_temperature(int16_t *temperature)
 	 	}
 
 	 	int16_t temperature_ntc =  *temperature ;
-	 	ESP_LOGI(TAG, "TEMPERATURE %d 1",temperature_ntc);
+//	 	ESP_LOGI(TAG, "TEMPERATURE %d 1",temperature_ntc);
 
 	return ESP_OK;
 }

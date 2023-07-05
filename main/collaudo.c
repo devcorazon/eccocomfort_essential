@@ -9,9 +9,6 @@
 #include <stdbool.h>
 #include "collaudo.h"
 
-
-static bool first_iteration = true;
-
 void collaudo_task(void *pvParameters)
 {
 	esp_console_repl_t *repl = NULL;
@@ -94,12 +91,6 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
         return ESP_FAIL;
     }
 
-	if ( first_iteration == true)
-	{
-		// Initialization of RGB LED
-		ESP_ERROR_CHECK(rgb_led_init());
-		first_iteration = false;
-	}
     ESP_ERROR_CHECK(rgb_led_set(color,mode));
 
     return ESP_OK;
@@ -124,57 +115,57 @@ static esp_err_t do_test_fan_cmd(int argc, char **argv)
         return ESP_FAIL;
     }
     const char *index = argv[1];
-    int speed;
-    FanDirection direction;
+    uint8_t speed;
+    uint8_t direction;
 
     if (strcmp(index, "0") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_NONE_IN;
+        speed = SPEED_NONE;
         direction = FAN_STOP;
     }
     else if (strcmp(index, "1") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_SLEEP_IN;
+        speed = SPEED_NIGHT;
         direction = FAN_IN;
     }
     else if (strcmp(index, "2") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_LOW_IN;
+        speed = SPEED_LOW;
         direction = FAN_IN;
     }
     else if (strcmp(index, "3") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_MEDIUM_IN;
+        speed = SPEED_MEDIUM;
         direction = FAN_IN;
     }
     else if (strcmp(index, "4") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_HIGH_IN;
+        speed = SPEED_HIGH;
         direction = FAN_IN;
     }
     else if (strcmp(index, "5") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_SLEEP_OUT;
+        speed = SPEED_NIGHT;
         direction = FAN_OUT;
     }
     else if (strcmp(index, "6") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_LOW_OUT;
+        speed = SPEED_LOW;
         direction = FAN_OUT;
     }
     else if (strcmp(index, "7") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_MEDIUM_OUT;
+        speed = SPEED_MEDIUM;
         direction = FAN_OUT;
     }
     else if (strcmp(index, "8") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_HIGH_OUT;
+        speed = SPEED_HIGH;
         direction = FAN_OUT;
     }
     else if (strcmp(index, "9") == 0)
     {
-        speed = FAN_PWM_PULSE_SPEED_BOOST_OUT;
+        speed = SPEED_BOOST;
         direction = FAN_OUT;
     }
     else
@@ -183,9 +174,8 @@ static esp_err_t do_test_fan_cmd(int argc, char **argv)
         return ESP_FAIL;
     }
 
-    // Assume that fan_speed and fan_direction are set somewhere else
-    fan_set_speed(speed);
-    fan_set_direction(direction);
+    // Assume that fan_speed and fan_direction are set
+    fan_set(direction,speed);
 
     return ESP_OK;
 }

@@ -9,6 +9,7 @@
 #include "rgb_led.h"
 
 ktd2027_t ktd;
+static esp_err_t rgb_led_init();
 
 esp_err_t rgb_led_init()
 {
@@ -27,4 +28,15 @@ esp_err_t rgb_led_set(uint8_t led_color,uint8_t led_mode)
 {
 	ESP_ERROR_CHECK(ktd2027_led_set(&ktd,led_color,led_mode));
 	return ESP_OK;
+}
+
+void rgb_led_task(void *pvParameters)
+{
+    // init led
+	rgb_led_init();
+
+    while (1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(100)); // Sleep for 100 ms
+    }
 }

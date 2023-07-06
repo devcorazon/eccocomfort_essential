@@ -51,75 +51,66 @@ esp_err_t ntc_adc_init()
  */
 esp_err_t ntc_adc_temperature(int16_t *temperature)
 {
-	 ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN3, &adc_raw[0][1]));
-//	 ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, adc_raw[0][1]);
-	 if (do_calibration1)
-	 {
-	 ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw[0][1], &voltage[0][1]));
-//	 ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN3, voltage[0][1]);
-	 }
+	ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN3, &adc_raw[0][1]));
 
-	 uint32_t tmp = adc_raw[0][1] * NTC_ADC_LEG_RESISTANCE;
-	     tmp /= (ADC_BITWIDTH - 1) - adc_raw[0][1];
-	 	if (adc_raw[0][1] == ((1U << ADC_BITWIDTH) - 1U))
-	 	{
-	 		ESP_LOGE("NTC", "adc_read - failed");
-	 		return -1;
-	 	}
+	if (do_calibration1)
+	{
+		ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw[0][1],&voltage[0][1]));
+	}
 
-	     size_t i;
-	     for (i = 0; i < sizeof(ntc_convert)/sizeof(ntc_convert[0]); i++)
-	     {
-	         if (ntc_convert[i].resistance <= tmp)
-	             break;
-	     }
-	 	tmp = adc_raw[0][1] * NTC_ADC_LEG_RESISTANCE;
-	 	tmp /= (((1U << ADC_BITWIDTH) - 1U) - adc_raw[0][1]);
+	uint32_t tmp = voltage[0][1] * NTC_ADC_LEG_RESISTANCE;
+	tmp /= NTC_ADC_VIN - voltage[0][1];
 
-	    if (i == 0)
-	    {
-	        *temperature = ntc_convert[i].temperature;
-	    }
-	    else if (i == sizeof(ntc_convert)/sizeof(ntc_convert[0]))
-	    {
-	        *temperature = ntc_convert[sizeof(ntc_convert)/sizeof(ntc_convert[0]) - 1].temperature;
-	    }
-	    else
-	    {
-	        *temperature = ntc_convert[i - 1].temperature + (((tmp - ntc_convert[i - 1].resistance) *
-	                   (ntc_convert[i - 1].temperature - ntc_convert[i].temperature)) /
-	                   (ntc_convert[i - 1].resistance  - ntc_convert[i].resistance));
-	    }
-	 	for (i = 0U; i < sizeof(ntc_convert) / sizeof(ntc_shape_t); i++)
-	 	{
-	 		if (ntc_convert[i].resistance <= tmp)
-	 			break;
-	 	}
-	 	if (i == 0U)
-	 	{
-	 		*temperature = ntc_convert[i].temperature;
-	 	}
-	 	else if (i == sizeof(ntc_convert) / sizeof(ntc_shape_t))
-	 	{
-	 		*temperature =
-	 				ntc_convert[sizeof(ntc_convert) / sizeof(ntc_shape_t) - 1].temperature;
-	 	}
-	 	else
-	 	{
-	 		*temperature = ntc_convert[i - 1].temperature
-	 				+ (((tmp - ntc_convert[i - 1].resistance)
-	 						* (ntc_convert[i - 1].temperature
-	 								- ntc_convert[i].temperature))
-	 						/ (ntc_convert[i - 1].resistance
-	 								- ntc_convert[i].resistance));
-	 	}
+	size_t i;
+	for (i = 0; i < sizeof(ntc_convert) / sizeof(ntc_convert[0]); i++)
+	{
+		if (ntc_convert[i].resistance <= tmp)
+			break;
+	}
 
-	 	int16_t temperature_ntc =  *temperature ;
-//	 	ESP_LOGI(TAG, "TEMPERATURE %d 1",temperature_ntc);
+	if (i == 0)
+	{
+		*temperature = ntc_convert[i].temperature;
+	}
+	else if (i == sizeof(ntc_convert) / sizeof(ntc_convert[0]))
+	{
+		*temperature = ntc_convert[sizeof(ntc_convert) / sizeof(ntc_convert[0])
+				- 1].temperature;
+	}
+	else
+	{
+		*temperature = ntc_convert[i - 1].temperature
+				+ (((tmp - ntc_convert[i - 1].resistance)
+						* (ntc_convert[i - 1].temperature
+								- ntc_convert[i].temperature))
+						/ (ntc_convert[i - 1].resistance
+								- ntc_convert[i].resistance));
+	}
+	for (i = 0U; i < sizeof(ntc_convert) / sizeof(ntc_shape_t); i++)
+	{
+		if (ntc_convert[i].resistance <= tmp)
+			break;
+	}
+	if (i == 0U)
+	{
+		*temperature = ntc_convert[i].temperature;
+	}
+	else if (i == sizeof(ntc_convert) / sizeof(ntc_shape_t))
+	{
+		*temperature = ntc_convert[sizeof(ntc_convert) / sizeof(ntc_shape_t) - 1].temperature;
+	}
+	else
+	{
+		*temperature = ntc_convert[i - 1].temperature
+				+ (((tmp - ntc_convert[i - 1].resistance)
+						* (ntc_convert[i - 1].temperature
+								- ntc_convert[i].temperature))
+						/ (ntc_convert[i - 1].resistance
+								- ntc_convert[i].resistance));
+	}
 
 	return ESP_OK;
 }
-
 /*---------------------------------------------------------------
         ADC Calibration
 ---------------------------------------------------------------*/

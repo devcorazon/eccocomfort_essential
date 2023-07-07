@@ -13,6 +13,7 @@
 #include "rgb_led.h"
 #include "ir_receiver.h"
 #include "collaudo.h"
+#include "wifi.h"
 
 #ifndef MAIN_INCLUDE_MAIN_H_
 #define MAIN_INCLUDE_MAIN_H_

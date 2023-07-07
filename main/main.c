@@ -29,4 +29,6 @@ void app_main()
 	// Create RGB Led task
 	xTaskCreate(rgb_led_task, "rgb_led_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
+	// Create WIFI AP task
+//	xTaskCreate(wifi_task, "wifi_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 }

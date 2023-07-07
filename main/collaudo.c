@@ -9,6 +9,12 @@
 #include <stdbool.h>
 #include "collaudo.h"
 
+#define SSID "YourSSID"
+#define PASSWORD "YourPassword"
+
+static const char *TAG = "collaudo";
+
+
 void collaudo_task(void *pvParameters)
 {
 	esp_console_repl_t *repl = NULL;
@@ -44,9 +50,25 @@ void collaudo_task(void *pvParameters)
 	   .hint = NULL,
 	   .func = do_test_fan_cmd,
 	 };
+	 const esp_console_cmd_t cmd_test_start = {
+	   .command = "test_start",
+	   .help = "Test start",
+	   .hint = NULL,
+	   .func = do_test_start_cmd,
+	 };
+	 const esp_console_cmd_t cmd_test_stop = {
+	   .command = "test_stop",
+	   .help = "Test stop",
+	   .hint = NULL,
+	   .func = do_test_stop_cmd,
+	 };
+
 	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_led));
 	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_all));
 	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_fan));
+	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_start));
+	 ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_test_stop));
+
     // Suspend task after initializing the console.
     for(;;) {
        vTaskSuspend(NULL);
@@ -178,4 +200,16 @@ static esp_err_t do_test_fan_cmd(int argc, char **argv)
     fan_set(direction,speed);
 
     return ESP_OK;
+}
+
+static esp_err_t do_test_start_cmd(int argc, char** argv)
+{
+	wifi_ap_start();
+	return ESP_OK;
+}
+
+static esp_err_t do_test_stop_cmd(int argc, char** argv)
+{
+	wifi_ap_stop();
+	return ESP_OK;
 }

@@ -62,30 +62,7 @@ esp_err_t ntc_adc_temperature(int16_t *temperature)
 	tmp /= NTC_ADC_VIN - voltage[0][1];
 
 	size_t i;
-	for (i = 0; i < sizeof(ntc_convert) / sizeof(ntc_convert[0]); i++)
-	{
-		if (ntc_convert[i].resistance <= tmp)
-			break;
-	}
 
-	if (i == 0)
-	{
-		*temperature = ntc_convert[i].temperature;
-	}
-	else if (i == sizeof(ntc_convert) / sizeof(ntc_convert[0]))
-	{
-		*temperature = ntc_convert[sizeof(ntc_convert) / sizeof(ntc_convert[0])
-				- 1].temperature;
-	}
-	else
-	{
-		*temperature = ntc_convert[i - 1].temperature
-				+ (((tmp - ntc_convert[i - 1].resistance)
-						* (ntc_convert[i - 1].temperature
-								- ntc_convert[i].temperature))
-						/ (ntc_convert[i - 1].resistance
-								- ntc_convert[i].resistance));
-	}
 	for (i = 0U; i < sizeof(ntc_convert) / sizeof(ntc_shape_t); i++)
 	{
 		if (ntc_convert[i].resistance <= tmp)

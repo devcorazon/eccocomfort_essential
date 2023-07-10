@@ -11,6 +11,8 @@
 
 static const char *TAG = "wifi softAP";
 
+esp_netif_t* ap_netif;
+
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t event_id, void* event_data)
 {
     if (event_id == WIFI_EVENT_AP_STACONNECTED) {
@@ -28,7 +30,7 @@ void wifi_init_softap(void)
 {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_netif_create_default_wifi_ap();
+    ap_netif = esp_netif_create_default_wifi_ap();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -70,6 +72,15 @@ void wifi_ap_stop()
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
     ESP_ERROR_CHECK(esp_wifi_stop());
     ESP_ERROR_CHECK(esp_wifi_deinit());
+
+    //Unregister event handler before deleting default event loop
+     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler));
+
+     //Delete default event loop here
+     ESP_ERROR_CHECK(esp_event_loop_delete_default());
+
+     // Destroy the network interface
+     esp_netif_destroy(ap_netif);
 }
 
 void wifi_ap_start()

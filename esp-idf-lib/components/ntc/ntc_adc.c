@@ -4,6 +4,9 @@
  * Copyright (c) Youcef BENAKMOUME
  *
  */
+
+#define CALIB_MOD
+
 #include "ntc_adc.h"
 
 static const char *TAG = "ntc_adc";
@@ -51,7 +54,17 @@ esp_err_t ntc_adc_init()
  */
 esp_err_t ntc_adc_temperature(int16_t *temperature)
 {
+#if !defined(CALIB_MOD)
 	ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN3, &adc_raw[0][1]));
+#else
+	long sum_samples = 0;
+
+	for (size_t i = 0u; i < NO_OF_SAMPLE; i++) {
+		ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN3, &adc_raw[0][1]));
+		sum_samples += adc_raw[0][1];
+	}
+	adc_raw[0][1] = sum_samples / NO_OF_SAMPLE;
+#endif
 
 	if (do_calibration1)
 	{
@@ -93,7 +106,9 @@ esp_err_t ntc_adc_temperature(int16_t *temperature)
 ---------------------------------------------------------------*/
 static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle)
 {
-    adc_cali_handle_t handle = NULL;
+#if !defined(CALIB_MOD)
+	adc_cali_handle_t handle = NULL;
+#endif
     esp_err_t ret = ESP_FAIL;
     bool calibrated = false;
 
@@ -106,7 +121,11 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
             .atten = atten,
             .bitwidth = ADC_BITWIDTH_DEFAULT,
         };
+#if !defined(CALIB_MOD)
         ret = adc_cali_create_scheme_curve_fitting(&cali_config, &handle);
+#else
+        ret = adc_cali_create_scheme_curve_fitting(&cali_config, out_handle);
+#endif
         if (ret == ESP_OK)
         {
             calibrated = true;
@@ -129,7 +148,9 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
     }
 #endif
 
+#if !defined(CALIB_MOD)
     *out_handle = handle;
+#endif
     if (ret == ESP_OK)
     {
         ESP_LOGI(TAG, "Calibration Success");
@@ -155,4 +176,3 @@ static void adc_calibration_deinit(adc_cali_handle_t handle)
     ESP_ERROR_CHECK(adc_cali_delete_scheme_line_fitting(handle));
 #endif
 }
-

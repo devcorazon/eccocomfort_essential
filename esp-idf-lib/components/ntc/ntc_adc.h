@@ -33,7 +33,11 @@ extern "C" {
 #define EXAMPLE_ADC1_CHAN3   ADC_CHANNEL_3
 // Number of ADC sample in order to get an adc value
 #define NO_OF_SAMPLE 64
+#if 1
 #define NTC_ADC_VIN 3300ul
+#else
+#define NTC_ADC_VIN 3000ul
+#endif
 // Update this value based on your hardware specification
 #define NTC_ADC_LEG_RESISTANCE 10000ul
 
@@ -50,6 +54,7 @@ typedef struct {
 } ntc_shape_t;
 
 static const ntc_shape_t ntc_convert[] = {
+#if 0
     {329500, -50 * NTC_ADC_TEMPERATURE_SCALE},
     {247700, -45 * NTC_ADC_TEMPERATURE_SCALE},
     {188500, -40 * NTC_ADC_TEMPERATURE_SCALE},
@@ -71,6 +76,25 @@ static const ntc_shape_t ntc_convert[] = {
     {5827,  40 * NTC_ADC_TEMPERATURE_SCALE},
     {4911,  45 * NTC_ADC_TEMPERATURE_SCALE},
     {4160,  50 * NTC_ADC_TEMPERATURE_SCALE}
+#else
+    {129900, -30 * NTC_ADC_TEMPERATURE_SCALE},
+    {98180, -25 * NTC_ADC_TEMPERATURE_SCALE},
+    {75020, -20 * NTC_ADC_TEMPERATURE_SCALE},
+    {57930, -15 * NTC_ADC_TEMPERATURE_SCALE},
+    {45170, -10 * NTC_ADC_TEMPERATURE_SCALE},
+    {35550, -5  * NTC_ADC_TEMPERATURE_SCALE},
+    {28200,  0},
+    {22600,  5  * NTC_ADC_TEMPERATURE_SCALE},
+    {18230,  10 * NTC_ADC_TEMPERATURE_SCALE},
+    {14820,  15 * NTC_ADC_TEMPERATURE_SCALE},
+    {12130,  20 * NTC_ADC_TEMPERATURE_SCALE},
+    {10000,  25 * NTC_ADC_TEMPERATURE_SCALE},
+    {8295,  30 * NTC_ADC_TEMPERATURE_SCALE},
+    {6922,  35 * NTC_ADC_TEMPERATURE_SCALE},
+    {5810,  40 * NTC_ADC_TEMPERATURE_SCALE},
+    {4903,  45 * NTC_ADC_TEMPERATURE_SCALE},
+    {4160,  50 * NTC_ADC_TEMPERATURE_SCALE}
+#endif
 };
 
 

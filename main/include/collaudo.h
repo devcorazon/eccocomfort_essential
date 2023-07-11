@@ -16,6 +16,7 @@
 #include "sensor.h"
 #include "fan.h"
 #include "wifi.h"
+#include "bluetooth.h"
 
 
 #define PROMPT_STR CONFIG_IDF_TARGET

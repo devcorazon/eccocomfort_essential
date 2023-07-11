@@ -14,6 +14,8 @@
 #include "ir_receiver.h"
 #include "collaudo.h"
 #include "wifi.h"
+#include "nvs_flash.h"
+#include "bluetooth.h"
 
 #ifndef MAIN_INCLUDE_MAIN_H_
 #define MAIN_INCLUDE_MAIN_H_

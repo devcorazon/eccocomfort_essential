@@ -12,6 +12,7 @@
 //static __attribute__((section(".noinit"))) struct application_data_s application_data;
 static struct application_data_s application_data;
 
+
 static void storage_init_noinit_data(void)
 {
 	memset(&application_data.runtime_data, 0, sizeof(application_data.runtime_data));

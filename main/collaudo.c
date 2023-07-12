@@ -204,14 +204,14 @@ static esp_err_t do_test_fan_cmd(int argc, char **argv)
 
 static esp_err_t do_test_start_cmd(int argc, char** argv)
 {
+	ble_advertising_start();
 	wifi_ap_start();
-	xTaskCreate(ble_advertising_start_task, "bluetooth_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 	return ESP_OK;
 }
 
 static esp_err_t do_test_stop_cmd(int argc, char** argv)
 {
+	ble_advertising_stop();
 	wifi_ap_stop();
-//	ble_advertising_stop();
 	return ESP_OK;
 }

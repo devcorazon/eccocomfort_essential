@@ -92,11 +92,8 @@ esp_err_t ntc_adc_temperature(int16_t *temperature)
 	else
 	{
 		*temperature = ntc_convert[i - 1].temperature
-				+ (((tmp - ntc_convert[i - 1].resistance)
-						* (ntc_convert[i - 1].temperature
-								- ntc_convert[i].temperature))
-						/ (ntc_convert[i - 1].resistance
-								- ntc_convert[i].resistance));
+		                + (((int32_t)(tmp - ntc_convert[i - 1].resistance) * (ntc_convert[i - 1].temperature - ntc_convert[i].temperature))
+		                        / (int32_t)(ntc_convert[i - 1].resistance - ntc_convert[i].resistance));
 	}
 
 	return ESP_OK;

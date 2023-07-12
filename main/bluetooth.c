@@ -10,12 +10,10 @@
 #include <bluetooth.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/event_groups.h"
 #include "esp_system.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_bt.h"
-
 
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
@@ -24,102 +22,42 @@
 #include "esp_gatt_common_api.h"
 #include "freertos/semphr.h"
 
-#define LOG_TAG "MULTI_ADV_DEMO"
+#define LOG_TAG "ADV_DEMO"
 
-#define FUNC_SEND_WAIT_SEM(func, sem) do {\
-        esp_err_t __err_rc = (func);\
-        if (__err_rc != ESP_OK) { \
-            ESP_LOGE(LOG_TAG, "%s, message send fail, error = %d", __func__, __err_rc); \
-        } \
-        xSemaphoreTake(sem, portMAX_DELAY); \
-} while(0);
+#define ADV_HANDLE      0
+#define NUM_ADV         1
 
-#define EXT_ADV_HANDLE      0
-#define NUM_EXT_ADV         1
+static bool is_bt_mem_released = false;
 
-static SemaphoreHandle_t test_sem = NULL;
-
-uint8_t addr_2m[6] = {0xc0, 0xde, 0x52, 0x00, 0x00, 0x02};
-
-esp_ble_gap_ext_adv_params_t ext_adv_params_2M = {
-    .type = ESP_BLE_GAP_SET_EXT_ADV_PROP_NONCONN_NONSCANNABLE_UNDIRECTED,
-    .interval_min = 0x30,
-    .interval_max = 0x30,
-    .channel_map = ADV_CHNL_ALL,
-    .filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
-    .primary_phy = ESP_BLE_GAP_PHY_1M,
-    .max_skip = 0,
-    .secondary_phy = ESP_BLE_GAP_PHY_2M,
-    .sid = 0,
-    .scan_req_notif = false,
-    .own_addr_type = BLE_ADDR_TYPE_RANDOM,
-    .tx_power = EXT_ADV_TX_PWR_NO_PREFERENCE,
+static esp_ble_adv_params_t adv_params = {
+    .adv_int_min       = 0x20,
+    .adv_int_max       = 0x40,
+    .adv_type          = ADV_TYPE_NONCONN_IND,
+    .own_addr_type     = BLE_ADDR_TYPE_PUBLIC,
+    .channel_map       = ADV_CHNL_ALL,
+    .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
 
-static esp_ble_gap_periodic_adv_params_t periodic_adv_params = {
-    .interval_min = 0x40, // 80 ms interval
-    .interval_max = 0x40,
-    .properties = 0, // Do not include TX power
-};
-
-static uint8_t periodic_adv_raw_data[] = {
+static uint8_t adv_data[] = {
         0x02, 0x01, 0x06,
         0x02, 0x0a, 0xeb,
-        0x03, 0x03, 0xab, 0xcd,
-        0x11, 0x09, 'E', 'S', 'P', '_', 'P', 'E', 'R', 'I', 'O', 'D', 'I',
-        'C', '_', 'A', 'D', 'V'
-};
-
-static uint8_t raw_ext_adv_data_2m[] = {
-        0x02, 0x01, 0x06,
-        0x02, 0x0a, 0xeb,
-        0x13, 0x09, 'E', 'S', 'P', '_', 'M', 'U', 'L', 'T', 'I', '_', 'A',
-        'D', 'V', '_', '8', '0', 'M', 'S'
-};
-
-static esp_ble_gap_ext_adv_t ext_adv[1] = {
-    // instance, duration, peroid
-    [0] = {EXT_ADV_HANDLE, 0, 0},
+        0x13, 0x09, 'A', 'D', 'V', '_', 'E', 'C', 'O', '_', 'C', 'O',
+        'M', 'F', 'O', 'R', 'T', '_', '8', '0'
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
-    switch (event) {
-    case ESP_GAP_BLE_EXT_ADV_SET_RAND_ADDR_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_ADV_SET_RAND_ADDR_COMPLETE_EVT, status %d", param->ext_adv_set_rand_addr.status);
-        break;
-    case ESP_GAP_BLE_EXT_ADV_SET_PARAMS_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_ADV_SET_PARAMS_COMPLETE_EVT, status %d", param->ext_adv_set_params.status);
-        break;
-    case ESP_GAP_BLE_EXT_ADV_DATA_SET_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_ADV_DATA_SET_COMPLETE_EVT, status %d", param->ext_adv_data_set.status);
-        break;
-    case ESP_GAP_BLE_EXT_SCAN_RSP_DATA_SET_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_SCAN_RSP_DATA_SET_COMPLETE_EVT, status %d", param->scan_rsp_set.status);
-        break;
-    case ESP_GAP_BLE_EXT_ADV_START_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_ADV_START_COMPLETE_EVT, status %d", param->ext_adv_start.status);
-        break;
-    case ESP_GAP_BLE_EXT_ADV_STOP_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_EXT_ADV_STOP_COMPLETE_EVT, status %d", param->ext_adv_stop.status);
-        break;
-    case ESP_GAP_BLE_PERIODIC_ADV_SET_PARAMS_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SET_PARAMS_COMPLETE_EVT, status %d", param->peroid_adv_set_params.status);
-        break;
-    case ESP_GAP_BLE_PERIODIC_ADV_DATA_SET_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PERIODIC_ADV_DATA_SET_COMPLETE_EVT, status %d", param->period_adv_data_set.status);
-        break;
-    case ESP_GAP_BLE_PERIODIC_ADV_START_COMPLETE_EVT:
-        xSemaphoreGive(test_sem);
-        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PERIODIC_ADV_START_COMPLETE_EVT, status %d", param->period_adv_start.status);
+    switch (event)
+    {
+    case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
+        if(param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS)
+        {
+            ESP_LOGE(LOG_TAG, "Advertising start failed");
+        }
+        else
+        {
+            ESP_LOGI(LOG_TAG, "Advertising start successfully");
+        }
         break;
     default:
         break;
@@ -130,55 +68,93 @@ void ble_advertising_start()
 {
     esp_err_t ret;
 
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+    if (!is_bt_mem_released)
+    {
+        ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+        is_bt_mem_released = true;
+    }
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        ESP_LOGE(LOG_TAG, "%s initialize controller failed: %s\n", __func__, esp_err_to_name(ret));
-        return;
+
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_IDLE)
+    {
+        ret = esp_bt_controller_init(&bt_cfg);
+        if (ret)
+        {
+            ESP_LOGE(LOG_TAG, "%s initialize controller failed: %s\n", __func__, esp_err_to_name(ret));
+            return;
+        }
     }
 
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        ESP_LOGE(LOG_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
-        return;
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_INITED) {
+        ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+        if (ret)
+        {
+            ESP_LOGE(LOG_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
+            return;
+        }
     }
+
     ret = esp_bluedroid_init();
-    if (ret) {
+    if (ret)
+    {
         ESP_LOGE(LOG_TAG, "%s init bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
         return;
     }
     ret = esp_bluedroid_enable();
-    if (ret) {
+    if (ret)
+    {
         ESP_LOGE(LOG_TAG, "%s enable bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
         return;
     }
     ret = esp_ble_gap_register_callback(gap_event_handler);
-    if (ret){
+    if (ret)
+    {
         ESP_LOGE(LOG_TAG, "gap register error, error code = %x", ret);
         return;
     }
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
 
-    test_sem = xSemaphoreCreateBinary();
-    // 2M phy extend adv, Connectable advertising
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_ext_adv_set_params(EXT_ADV_HANDLE, &ext_adv_params_2M), test_sem);
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_ext_adv_set_rand_addr(EXT_ADV_HANDLE, addr_2m), test_sem);
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_config_ext_adv_data_raw(EXT_ADV_HANDLE, sizeof(raw_ext_adv_data_2m), &raw_ext_adv_data_2m[0]), test_sem);
+    ret = esp_ble_gap_config_adv_data_raw(adv_data, sizeof(adv_data));
+    if (ret)
+    {
+        ESP_LOGE(LOG_TAG, "config adv data raw failed, error code = %x", ret);
+    }
 
-    // start all adv
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_ext_adv_start(NUM_EXT_ADV, &ext_adv[0]), test_sem);
-
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_periodic_adv_set_params(EXT_ADV_HANDLE, &periodic_adv_params), test_sem);
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_config_periodic_adv_data_raw(EXT_ADV_HANDLE, sizeof(periodic_adv_raw_data), &periodic_adv_raw_data[0]), test_sem);
-    FUNC_SEND_WAIT_SEM(esp_ble_gap_periodic_adv_start(EXT_ADV_HANDLE), test_sem);
-
+    // start advertising
+    ret = esp_ble_gap_start_advertising(&adv_params);
+    if (ret)
+    {
+        ESP_LOGE(LOG_TAG, "start advertising failed, error code = %x", ret);
+    }
 }
 
-void ble_advertising_start_task(void *pvParameters)
+void ble_advertising_stop()
 {
-    ble_advertising_start();
-    vTaskDelete(NULL);
+    esp_err_t ret;
+
+    // stop advertising
+    ret = esp_ble_gap_stop_advertising();
+    if (ret) {
+        ESP_LOGE(LOG_TAG, "stop advertising failed, error code = %x", ret);
+    }
+
+    // disable bluedroid
+    ret = esp_bluedroid_disable();
+    if (ret) {
+        ESP_LOGE(LOG_TAG, "%s disable bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
+    }
+
+    // deinit bluedroid
+    ret = esp_bluedroid_deinit();
+    if (ret) {
+        ESP_LOGE(LOG_TAG, "%s deinit bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
+    }
+
+    // disable controller
+    ret = esp_bt_controller_disable();
+    if (ret) {
+        ESP_LOGE(LOG_TAG, "%s disable controller failed: %s\n", __func__, esp_err_to_name(ret));
+    }
 }

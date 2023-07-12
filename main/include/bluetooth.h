@@ -9,6 +9,6 @@
 #define _BLUETOOTH_H_
 
 void ble_advertising_start();
-void ble_advertising_start_task(void *pvParameters);
+void ble_advertising_stop();
 
 #endif //_BLUETOOTH_H_

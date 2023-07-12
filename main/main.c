@@ -42,5 +42,5 @@ void app_main()
 //	xTaskCreate(wifi_task, "wifi_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
 	// Create BLUETOOTH AP task
-	xTaskCreate(ble_advertising_start_task, "bluetooth_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
+//	xTaskCreate(ble_advertising_start_task, "bluetooth_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 }

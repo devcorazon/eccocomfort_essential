@@ -120,13 +120,58 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
 
 static esp_err_t do_test_all_cmd(int argc, char **argv)
 {
-    printf("Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(get_temperature()), TEMP_RAW_TO_DEC(get_temperature()));
-	printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(get_relative_humidity()), RH_RAW_TO_DEC(get_relative_humidity()));
-	printf("VOC Index =  %ld \n", get_voc());
-	printf("LUX =  %u.%01u %%\n", RH_RAW_TO_INT(get_lux()), RH_RAW_TO_DEC(get_lux()));
-	printf("NTC Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(get_ntc_temperature()),TEMP_RAW_TO_DEC(get_ntc_temperature()));
+    uint16_t temp = get_temperature();
+    if (temp == UINT16_MAX)
+    {
+        printf("Temperature reading error\n");
+    }
+    else
+    {
+        printf("Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(temp), TEMP_RAW_TO_DEC(temp));
+    }
 
-	return ESP_OK;
+    uint16_t rh = get_relative_humidity();
+    if (rh == UINT16_MAX)
+    {
+        printf("Relative humidity reading error\n");
+    }
+    else
+    {
+        printf("Relative humidity =  %u.%01u %%\n", RH_RAW_TO_INT(rh), RH_RAW_TO_DEC(rh));
+    }
+
+    int32_t voc = get_voc();
+    if (voc == UINT16_MAX)
+    {
+        printf("VOC Index reading error\n");
+    }
+    else
+    {
+        printf("VOC Index =  %ld \n", voc);
+    }
+
+    uint16_t lux = get_lux();
+    if (lux == UINT16_MAX)
+    {
+        printf("LUX reading error\n");
+    }
+    else
+    {
+        printf("LUX =  %u.%01u %%\n", RH_RAW_TO_INT(lux), RH_RAW_TO_DEC(lux));
+    }
+
+    uint16_t ntc_temp = get_ntc_temperature();
+    if (ntc_temp == UINT16_MAX)
+    {
+        printf("NTC Temperature reading error\n");
+    }
+    else
+    {
+        printf("NTC Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(ntc_temp), TEMP_RAW_TO_DEC(ntc_temp));
+    }
+
+    return ESP_OK;
+
 }
 
 static esp_err_t do_test_fan_cmd(int argc, char **argv)

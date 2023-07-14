@@ -60,24 +60,58 @@ void sensor_measure_task(void *pvParameters)
     while (1)
     {
         // Perform measurements
-        ESP_ERROR_CHECK(sht4x_measure(&sht, &temperature, &humidity));
-        ESP_ERROR_CHECK(sgp40_measure_voc(&sgp, humidity, temperature, &voc_index));
-        ESP_ERROR_CHECK(ltr303_measure_lux(&ltr, &lux));
-        ESP_ERROR_CHECK(ntc_adc_temperature(&ntc_temperature));
+        if (sht4x_measure(&sht, &temperature, &humidity) != ESP_OK)
+        {
+            temperature = UINT16_MAX;
+            humidity = UINT16_MAX;
+            // Store error values
+            set_temperature(temperature);
+            set_relative_humidity(humidity);
+        }
+        else
+        {
+            // On successful measurement, convert them to the respective raw values before storing
+            set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
+            set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
+        }
 
-        set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
-        set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
-        set_voc(voc_index);
-        set_lux(SET_VALUE_TO_RH_RAW(lux));
-        set_ntc_temperature(ntc_temperature);
+        if (sgp40_measure_voc(&sgp, humidity, temperature, &voc_index) != ESP_OK)
+        {
+            voc_index = UINT16_MAX;
+            // Store error value
+            set_voc(voc_index);
+        }
+        else
+        {
+            set_voc(voc_index);
+        }
 
-        // Process and log the sensor readings
- //       ESP_LOGI(TAG, "Lux: %.2f, Temperature: %.2f °C, Humidity: %.2f %%, VOC index: %" PRId32 ", Air is [%s]",
- //                lux, temperature, humidity, voc_index, voc_index_name(voc_index));
+        if (ltr303_measure_lux(&ltr, &lux) != ESP_OK)
+        {
+            lux = UINT16_MAX;
+            // Store error value
+            set_lux(lux);
+        }
+        else
+        {
+            set_lux(SET_VALUE_TO_RH_RAW(lux));
+        }
+
+        if (ntc_adc_temperature(&ntc_temperature) != ESP_OK)
+        {
+            ntc_temperature = UINT16_MAX;
+            // Store error value
+            set_ntc_temperature(ntc_temperature);
+        }
+        else
+        {
+            set_ntc_temperature(ntc_temperature);
+        }
 
         // Wait 1 second for the next sensor reading
         vTaskDelayUntil(&last_wakeup, pdMS_TO_TICKS(1000));
     }
+
 }
 
 

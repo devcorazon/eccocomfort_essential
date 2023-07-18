@@ -20,9 +20,7 @@
 #ifndef MAIN_INCLUDE_MAIN_H_
 #define MAIN_INCLUDE_MAIN_H_
 
-#ifndef APP_CPU_NUM
-#define APP_CPU_NUM PRO_CPU_NUM
-#endif
+#define VERSION_ADDRESS 0x2000
 
 
 

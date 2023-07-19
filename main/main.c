@@ -8,37 +8,12 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_system.h>
-#include "esp_partition.h"
 #include "main.h"
 
 static const char *TAG = "ecocomfort-essential";
 
 void app_main()
 {
-    uint8_t version;
-
-    // Find the partition map for the factory app.
-    const esp_partition_t *partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, NULL);
-
-    // If the partition is not found, log an error message and return from the function.
-    if (partition == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to find partition");
-        return;
-    }
-    // Read the version number from the flash, at the offset VERSION_ADDRESS from the start of the partition.
-    esp_err_t err = esp_partition_read(partition, VERSION_ADDRESS, &version, sizeof(version));
-
-    // If the read operation was successful, log the version number
-    if (err == ESP_OK)
-    {
-        ESP_LOGI(TAG, "Firmware version: %d", version);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Failed to read version from flash: %s", esp_err_to_name(err));
-    }
-
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)

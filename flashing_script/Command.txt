@@ -1,6 +1,0 @@
-To flash open windows power shell and go to the flashing_script folder
-
-and then use this command : 
-
-& 'C:\Program Files\Git\git-bash.exe' -c './flash.sh; bash'
-

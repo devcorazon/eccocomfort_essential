@@ -11,6 +11,7 @@
 #include <esp_err.h>
 #include <esp_log.h>
 #include "esp_console.h"
+#include "esp_efuse.h"
 #include <string.h>
 #include "rgb_led.h"
 #include "sensor.h"

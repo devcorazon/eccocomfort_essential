@@ -120,6 +120,41 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
 
 static esp_err_t do_test_all_cmd(int argc, char **argv)
 {
+	esp_err_t err;
+	uint32_t efuse_data[8]; // 8 32-bit words equal to 256 bits
+	int num_bits = sizeof(efuse_data) * 8; // Total bits in efuse_data array
+
+	// Read from bit 0
+	int start_bit = 0;
+
+	err = esp_efuse_read_block(EFUSE_BLK3, &start_bit, efuse_data, num_bits);
+
+	if (err == ESP_OK)
+	{
+		printf("Data read from eFuse BLOCK3:\n");
+		for (int i = 0; i < 8; i++)
+		{
+			printf("Word %d: 0x%08lX\n", i, efuse_data[i]);
+		}
+	}
+	else
+	{
+		switch (err)
+		{
+		case ESP_ERR_INVALID_ARG:
+			printf("Invalid argument.\n");
+			break;
+		case ESP_ERR_INVALID_STATE:
+			printf("Invalid state.\n");
+			break;
+		case ESP_ERR_NOT_FOUND:
+			printf("Block not found.\n");
+			break;
+		default:
+			printf("Unknown error.\n");
+		}
+	}
+
     uint16_t temp = get_temperature();
     if (temp == UINT16_MAX)
     {

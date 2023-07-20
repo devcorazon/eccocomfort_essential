@@ -16,6 +16,8 @@ struct noinit_data_s {
 };
 
 struct runtime_data_s {
+	uint32_t    serial_number;
+	uint16_t    fw_version_v_ctrl;
 	int16_t		temperature;
 	uint16_t    relative_humidity;
 	int32_t     voc;

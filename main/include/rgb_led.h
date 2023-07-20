@@ -18,6 +18,7 @@
 #define I2C_MASTER_SCL_PIN 5
 
 esp_err_t rgb_led_set(uint8_t led_color,uint8_t led_mode);
+esp_err_t rgb_led_blink(uint8_t led_color, uint32_t blink_duration, uint32_t blink_period);
 void rgb_led_task(void *pvParameters);
 
 #endif /* MAIN_INCLUDE_RGB_LED_H_ */

@@ -4,6 +4,7 @@
  *  Created on: 10 juil. 2023
  *      Author: youcef.benakmoume
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +22,8 @@
 #include "esp_bt_main.h"
 #include "esp_gatt_common_api.h"
 #include "freertos/semphr.h"
+#include <inttypes.h>  // Include for PRIx32
+#include "storage.h"
 
 #define LOG_TAG "ADV_DEMO"
 
@@ -36,13 +39,6 @@ static esp_ble_adv_params_t adv_params = {
     .own_addr_type     = BLE_ADDR_TYPE_PUBLIC,
     .channel_map       = ADV_CHNL_ALL,
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
-};
-
-static uint8_t adv_data[] = {
-        0x02, 0x01, 0x06,
-        0x02, 0x0a, 0xeb,
-        0x13, 0x09, 'A', 'D', 'V', '_', 'E', 'C', 'O', '_', 'C', 'O',
-        'M', 'F', 'O', 'R', 'T', '_', '8', '0'
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -66,7 +62,20 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
 void ble_advertising_start()
 {
-    esp_err_t ret;
+	esp_err_t ret;
+	char serial_number_str[9];  // For the hexadecimal string. 8 characters for the hexadecimal representation and 1 for the null-terminator.
+	uint32_t serial_number = get_serial_number();
+
+	snprintf(serial_number_str, sizeof(serial_number_str), "%08lX", serial_number); // Convert to hex string
+
+	// Create advertising data dynamically
+	uint8_t adv_data[26] = {
+	    0x02, 0x01, 0x06,
+	    0x02, 0x0a, 0x0b,
+	    0x12, 0x09, 'E', 'C', 'M', 'F', '-'
+	};
+
+	memcpy(&adv_data[13], serial_number_str, 8);
 
     if (!is_bt_mem_released)
     {
@@ -115,6 +124,16 @@ void ble_advertising_start()
     }
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
+
+    // Replace the 'A', 'D', 'V', '_', 'E', 'C', 'O', '_', 'C', 'O', 'M', 'F', 'O', 'R', 'T', '_', '8', '0'
+    // with 'E', 'C', 'M', 'F', '-', and the serial_number_str
+
+    adv_data[9] = 'E';
+    adv_data[10] = 'C';
+    adv_data[11] = 'M';
+    adv_data[12] = 'F';
+    adv_data[13] = '-';
+    memcpy(&adv_data[14], serial_number_str, 8);  // Copy the serial_number_str into adv_data.
 
     ret = esp_ble_gap_config_adv_data_raw(adv_data, sizeof(adv_data));
     if (ret)

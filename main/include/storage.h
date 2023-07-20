@@ -16,6 +16,12 @@ int storage_init(void);
 int storage_set_default(void);
 
 /// runtime data
+void set_serial_number(uint8_t serial_number_byte[4]);
+uint32_t get_serial_number(void);
+
+void set_fw_version(uint8_t fw_version_byte[2]);
+uint16_t get_fw_version(void);
+
 void set_temperature(int16_t temperature);
 int16_t get_temperature(void);
 
@@ -43,6 +49,8 @@ uint8_t get_mode_set(void);
 
 void set_speed_set(uint8_t speed_set);
 uint8_t get_speed_set(void);
+
+
 
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

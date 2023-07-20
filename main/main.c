@@ -23,6 +23,17 @@ void app_main()
     }
     ESP_ERROR_CHECK(ret);
 
+    // Setting Firmware version
+    uint8_t fw_version_byte[3];
+    fw_version_byte[0] = FW_VERSION_MAJOR;
+    fw_version_byte[1] = FW_VERSION_MINOR;
+    fw_version_byte[2] = FW_VERSION_PATCH;
+
+    set_fw_version(fw_version_byte);
+
+    // Getting serial number from eFuse BLK3
+    ESP_ERROR_CHECK(efuse_init());
+
 	// Create FreeRTOS task for the collaudo_task
 	xTaskCreate(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 
@@ -43,4 +54,23 @@ void app_main()
 
 	// Create BLUETOOTH AP task
 //	xTaskCreate(ble_advertising_start_task, "bluetooth_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
+}
+
+esp_err_t efuse_init()
+{
+    uint8_t serial_number_byte[4];
+    size_t num_bits = 4 * 8;
+    size_t start_bit = 28 * 8;
+
+    if (esp_efuse_read_block(EFUSE_BLK3, &serial_number_byte, start_bit, num_bits) == ESP_OK)
+    {
+        // verify after burn efuse if BE or LE
+        printf("Serial Number[byte]: %02x%02x%02x%02x\n", serial_number_byte[0], serial_number_byte[1], serial_number_byte[2], serial_number_byte[3]);
+        set_serial_number(serial_number_byte);
+        return ESP_OK;
+    }
+    else
+    {
+    	return ESP_FAIL;
+    }
 }

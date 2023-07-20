@@ -8,6 +8,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "storage.h"
 
 static const char *TAG = "wifi softAP";
 
@@ -28,35 +29,49 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t ev
 
 void wifi_init_softap(void)
 {
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    ap_netif = esp_netif_create_default_wifi_ap();
+	/* Creating the new SSID */
+	uint32_t serial_number = get_serial_number();
+	char serial_number_str[9]; // 8 characters for the hexadecimal number and 1 for the null terminator
+	sprintf(serial_number_str, "%08" PRIx32, serial_number); // Convert to hex string
 
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+	char ssid_prefix[] = "ECMF-";
+	char ssid[32]; // SSID length must be between 8-32 characters
 
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-                                                        ESP_EVENT_ANY_ID,
-                                                        &wifi_event_handler,
-                                                        NULL,
-                                                        NULL));
+	snprintf(ssid, sizeof(ssid), "%s%s", ssid_prefix, serial_number_str); // Concatenate the prefix and the serial number
 
-    wifi_config_t wifi_config = {
-        .ap = {
-            .ssid = EXAMPLE_ESP_WIFI_SSID,
-            .ssid_len = strlen(EXAMPLE_ESP_WIFI_SSID),
-            .channel = EXAMPLE_ESP_WIFI_CHANNEL,
-            .password = EXAMPLE_ESP_WIFI_PASS,
-            .max_connection = EXAMPLE_MAX_STA_CONN,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK,
-            .pmf_cfg = {
-                    .required = false,
-            },
-        },
-    };
-    if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0) {
-        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
-    }
+	ESP_ERROR_CHECK(esp_netif_init());
+	ESP_ERROR_CHECK(esp_event_loop_create_default());
+	ap_netif = esp_netif_create_default_wifi_ap();
+
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+	ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+	                                                    ESP_EVENT_ANY_ID,
+	                                                    &wifi_event_handler,
+	                                                    NULL,
+	                                                    NULL));
+
+	wifi_config_t wifi_config = {
+	    .ap = {
+	        .channel = EXAMPLE_ESP_WIFI_CHANNEL,
+	        .password = EXAMPLE_ESP_WIFI_PASS,
+	        .max_connection = EXAMPLE_MAX_STA_CONN,
+	        .authmode = WIFI_AUTH_WPA_WPA2_PSK,
+	        .pmf_cfg = {
+	                .required = false,
+	        },
+	    },
+	};
+
+	// Copy the SSID to the wifi_config
+	memcpy(wifi_config.ap.ssid, ssid, sizeof(ssid));
+	wifi_config.ap.ssid_len = strlen(ssid);
+
+	if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0) {
+	    wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+	}
+
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));

@@ -54,6 +54,7 @@ int storage_set_default(void)
 
 /// runtime data
 
+
 int16_t get_temperature(void)
 {
 	return application_data.runtime_data.temperature;
@@ -118,6 +119,28 @@ uint8_t get_speed_state(void)
 {
 	return application_data.runtime_data.speed_state;
 }
+
+uint32_t get_serial_number(void)
+{
+	return application_data.runtime_data.serial_number;
+}
+
+void set_serial_number(uint8_t serial_number_byte[4])
+{
+	application_data.runtime_data.serial_number = ((uint32_t)serial_number_byte[0]) << 24 | ((uint32_t)serial_number_byte[1]) << 16 | ((uint32_t)serial_number_byte[2]) << 8 | ((uint32_t)serial_number_byte[3]);
+}
+
+uint16_t get_fw_version(void)
+{
+	return application_data.runtime_data.fw_version_v_ctrl;
+}
+
+void set_fw_version(uint8_t fw_version_byte[2])
+{
+	application_data.runtime_data.fw_version_v_ctrl = ((uint16_t)fw_version_byte[0]) << 12 | ((uint16_t)fw_version_byte[1]) << 6 | ((uint16_t)fw_version_byte[2]);
+    printf("here we go %u ",application_data.runtime_data.fw_version_v_ctrl);
+}
+
 
 void set_speed_state(uint8_t speed_state)
 {

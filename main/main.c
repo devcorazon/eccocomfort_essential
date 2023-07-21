@@ -14,6 +14,9 @@ static const char *TAG = "ecocomfort-essential";
 
 void app_main()
 {
+    uint8_t fw_version_byte[3];
+    uint16_t fw_version;
+
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -23,13 +26,16 @@ void app_main()
     }
     ESP_ERROR_CHECK(ret);
 
+    // init storage
+    storage_init();
+
     // Setting Firmware version
-    uint8_t fw_version_byte[3];
     fw_version_byte[0] = FW_VERSION_MAJOR;
     fw_version_byte[1] = FW_VERSION_MINOR;
     fw_version_byte[2] = FW_VERSION_PATCH;
 
-    set_fw_version(fw_version_byte);
+    fw_version = ((uint16_t)fw_version_byte[0]) << 12 | ((uint16_t)fw_version_byte[1]) << 6 | ((uint16_t)fw_version_byte[2]);
+    set_fw_version(fw_version);
 
     // Getting serial number from eFuse BLK3
     ESP_ERROR_CHECK(efuse_init());
@@ -59,6 +65,7 @@ void app_main()
 esp_err_t efuse_init()
 {
     uint8_t serial_number_byte[4];
+    uint32_t serial_number;
     size_t num_bits = 4 * 8;
     size_t start_bit = 28 * 8;
 
@@ -66,7 +73,8 @@ esp_err_t efuse_init()
     {
         // verify after burn efuse if BE or LE
         printf("Serial Number[byte]: %02x%02x%02x%02x\n", serial_number_byte[0], serial_number_byte[1], serial_number_byte[2], serial_number_byte[3]);
-        set_serial_number(serial_number_byte);
+        serial_number =((uint32_t)serial_number_byte[0]) << 24 | ((uint32_t)serial_number_byte[1]) << 16 | ((uint32_t)serial_number_byte[2]) << 8 | ((uint32_t)serial_number_byte[3]);
+        set_serial_number(serial_number);
         return ESP_OK;
     }
     else

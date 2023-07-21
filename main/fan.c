@@ -72,7 +72,7 @@ esp_err_t fan_set(uint8_t direction,uint8_t speed)
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 
     // Set values to the runtime struct
-    set_mode_state(direction);
+    set_direction_state(direction);
     set_speed_state(fan_speed);
 
 	return ESP_OK;

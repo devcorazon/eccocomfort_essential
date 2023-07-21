@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "collaudo.h"
 #include <stdlib.h>
+#include <main.h>
 
 static const char *TAG = "collaudo";
 
@@ -127,8 +128,7 @@ static esp_err_t do_test_all_cmd(int argc, char **argv)
 	uint32_t serial_number = get_serial_number();
     printf("Serial Number: %08lx\n", serial_number);
 
-	uint16_t fw_version = get_fw_version();
-    printf("Firmware version : %u\n",fw_version);
+    printf("Firmware version: v%d.%d.%d\n", FW_VERSION_MAJOR,FW_VERSION_MINOR,FW_VERSION_PATCH);
 
     uint16_t temp = get_temperature();
     if (temp == UINT16_MAX)

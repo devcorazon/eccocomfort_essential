@@ -25,6 +25,7 @@ struct runtime_data_s {
 	int16_t     ntc_temperature;
 	uint8_t     mode_state;
 	uint8_t     speed_state;
+	uint8_t     direction_state;
 };
 
 ///

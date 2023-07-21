@@ -12,15 +12,24 @@
 #include "structs.h"
 #include "storage_internal.h"
 
-int storage_init(void);
+esp_err_t storage_init(void);
 int storage_set_default(void);
 
 /// runtime data
-void set_serial_number(uint8_t serial_number_byte[4]);
+void set_serial_number(uint32_t serial_number);
 uint32_t get_serial_number(void);
 
-void set_fw_version(uint8_t fw_version_byte[2]);
+void set_fw_version(uint16_t fw_version);
 uint16_t get_fw_version(void);
+
+void set_mode_state(uint8_t mode_state);
+uint8_t get_mode_state(void);
+
+void set_speed_state(uint8_t speed_state);
+uint8_t get_speed_state(void);
+
+void set_direction_state(uint8_t direction_state);
+uint8_t get_direction_state(void);
 
 void set_temperature(int16_t temperature);
 int16_t get_temperature(void);
@@ -37,18 +46,15 @@ int16_t get_lux(void);
 int16_t get_ntc_temperature(void);
 void set_ntc_temperature(int16_t ntc_temperature);
 
-void set_mode_state(uint8_t mode_state);
-uint8_t get_mode_state(void);
-
-void set_speed_state(uint8_t speed_state);
-uint8_t get_speed_state(void);
-
 /// configuration settings
-void set_mode_set(uint8_t mode_set);
+esp_err_t set_mode_set(uint8_t mode_set);
 uint8_t get_mode_set(void);
 
-void set_speed_set(uint8_t speed_set);
+esp_err_t set_speed_set(uint8_t speed_set);
 uint8_t get_speed_set(void);
+
+esp_err_t nvs_read(char *key, uint8_t *data);
+esp_err_t nvs_save(char *key, uint8_t data);
 
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

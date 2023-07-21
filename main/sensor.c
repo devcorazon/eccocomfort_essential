@@ -105,7 +105,14 @@ void sensor_measure_task(void *pvParameters)
         }
         else
         {
+        	if ( get_direction_state() == DIRECTION_IN) // Da verirfacre se imette con IN  or OUT
+        	{
             set_ntc_temperature(ntc_temperature);
+        	}
+        	else
+        	{
+             set_ntc_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
+        	}
         }
 
         // Wait 1 second for the next sensor reading
@@ -113,7 +120,6 @@ void sensor_measure_task(void *pvParameters)
     }
 
 }
-
 
 static const char *voc_index_name(int32_t voc_index)
 {

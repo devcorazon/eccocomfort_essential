@@ -1,0 +1,4 @@
+key,type,encoding,value
+defaultKey,namespace,,
+mode_set,data,u8,0
+speed_set,data,u8,0

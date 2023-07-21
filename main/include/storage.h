@@ -51,6 +51,4 @@ void set_speed_set(uint8_t speed_set);
 uint8_t get_speed_set(void);
 
 
-
-
 #endif /* SRC_INCLUDE_STORAGE_H_ */

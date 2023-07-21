@@ -54,7 +54,6 @@ int storage_set_default(void)
 
 /// runtime data
 
-
 int16_t get_temperature(void)
 {
 	return application_data.runtime_data.temperature;
@@ -138,7 +137,6 @@ uint16_t get_fw_version(void)
 void set_fw_version(uint8_t fw_version_byte[2])
 {
 	application_data.runtime_data.fw_version_v_ctrl = ((uint16_t)fw_version_byte[0]) << 12 | ((uint16_t)fw_version_byte[1]) << 6 | ((uint16_t)fw_version_byte[2]);
-    printf("here we go %u ",application_data.runtime_data.fw_version_v_ctrl);
 }
 
 

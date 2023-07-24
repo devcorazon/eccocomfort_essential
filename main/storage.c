@@ -49,8 +49,7 @@ esp_err_t storage_init(void)
     {
         return ret; // handle error
     }
-
-//    // read speed_set from NVS
+    // read speed_set from NVS
     ret = nvs_read("speed_set", &speed_set);
     if (ret != ESP_OK)
     {
@@ -251,6 +250,14 @@ esp_err_t nvs_save(char *key, uint8_t data)
     }
     err = nvs_commit(my_handle);
     nvs_close(my_handle);
+
+    return err;
+}
+
+esp_err_t nvs_erase(void)
+{
+    // Erase all NVS
+    esp_err_t err = nvs_flash_erase();
 
     return err;
 }

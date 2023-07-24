@@ -55,6 +55,7 @@ uint8_t get_speed_set(void);
 
 esp_err_t nvs_read(char *key, uint8_t *data);
 esp_err_t nvs_save(char *key, uint8_t data);
+esp_err_t nvs_erase(void);
 
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

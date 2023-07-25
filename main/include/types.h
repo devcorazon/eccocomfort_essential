@@ -81,4 +81,11 @@ enum {
 	DIRECTION_IN								= 0x02,
 };
 
+// Value type
+typedef enum {
+    TYPE_U8,
+    TYPE_U16,
+    TYPE_U32,
+    TYPE_U64,
+} ValueType;
 #endif /* SRC_INCLUDE_TYPES_H_ */

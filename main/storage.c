@@ -7,10 +7,12 @@
 
 #include <freertos/FreeRTOS.h>
 #include "storage.h"
-#include "nvs_flash.h"
 #include <esp_log.h>
+#include "main.h"
 
 nvs_handle_t my_handle;
+static bool handle_open = false; // Add this flag to check if handle is open
+
 
 // Data on ram.
 //static __attribute__((section(".noinit"))) struct application_data_s application_data;
@@ -32,10 +34,27 @@ static void storage_init_runtime_data(void)
 	//application_data.runtime_data.relative_humidity = RELATIVE_HUMIDITY_INVALID;
 }
 
+static void storage_init_configuration_settings(void)
+{
+	memset(&application_data.configuration_settings, 0, sizeof(application_data.configuration_settings));
+}
+
 esp_err_t storage_init(void)
 {
-    uint8_t mode_set;
-    uint8_t speed_set;
+    // Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    // Set Firmware version
+    set_fw_version();
+
+    // Getting serial number from eFuse BLK3
+    ESP_ERROR_CHECK(efuse_init());
 
     if (application_data.crc_noinit_data != crc((const uint8_t *) &application_data.noinit_data, sizeof(application_data.noinit_data)))
     {
@@ -43,23 +62,28 @@ esp_err_t storage_init(void)
     }
 
     storage_init_runtime_data();
-    // read mode_set from NVS
-    esp_err_t ret = nvs_read("mode_set", &mode_set);
-    if (ret != ESP_OK)
-    {
-        return ret; // handle error
-    }
-    // read speed_set from NVS
-    ret = nvs_read("speed_set", &speed_set);
-    if (ret != ESP_OK)
-    {
-        return ret;  // handle error
-    }
 
-    set_mode_set(mode_set);
-    set_speed_set(speed_set);
+    // Open NVS handle
+    ret = nvs_open("storage", NVS_READWRITE, &my_handle);
 
-    return ESP_OK;
+    if (ret == ESP_OK)
+    {
+       // read mode_set from NVS
+       ret = nvs_read("mode_set", &application_data.configuration_settings.mode_set);
+
+       // read speed_set from NVS
+       ret = nvs_read("speed_set", &application_data.configuration_settings.speed_set);
+    }
+    else
+    {
+       ESP_LOGE("NVS", "Error (%s) opening NVS handle!", esp_err_to_name(ret));
+       if ( ret == ESP_ERR_NVS_NOT_FOUND )
+       {
+    	//Set configuration settings to default value
+         storage_init_configuration_settings();
+       }
+    }
+    return ret;
 }
 
 esp_err_t storage_set_default(void)
@@ -68,6 +92,7 @@ esp_err_t storage_set_default(void)
 
 	storage_init_noinit_data();
 	storage_init_runtime_data();
+	storage_init_configuration_settings();
 
 	return ESP_OK;
 }
@@ -168,9 +193,15 @@ uint16_t get_fw_version(void)
 	return application_data.runtime_data.fw_version_v_ctrl;
 }
 
-void set_fw_version(uint16_t fw_version)
+void set_fw_version()
 {
-	application_data.runtime_data.fw_version_v_ctrl = fw_version;
+	uint8_t fw_version_byte[3];
+    // Setting Firmware version
+    fw_version_byte[0] = FW_VERSION_MAJOR;
+    fw_version_byte[1] = FW_VERSION_MINOR;
+    fw_version_byte[2] = FW_VERSION_PATCH;
+
+	application_data.runtime_data.fw_version_v_ctrl = ((uint16_t)fw_version_byte[0]) << 12 | ((uint16_t)fw_version_byte[1]) << 6 | ((uint16_t)fw_version_byte[2]);;
 }
 
 
@@ -184,7 +215,7 @@ esp_err_t set_mode_set(uint8_t mode_set)
 {
 	application_data.configuration_settings.mode_set = mode_set;
 
-	// Call the save function with key as "speed_set"
+	// Call the save function with key as "mode_set"
 	esp_err_t err = nvs_save("mode_set", mode_set);
 
     return err;
@@ -205,52 +236,34 @@ esp_err_t set_speed_set(uint8_t speed_set)
     return err;
 }
 
-esp_err_t nvs_read(char *key, uint8_t *data)
-{
-    nvs_handle_t my_handle;
-    esp_err_t err = nvs_open("storage", NVS_READONLY, &my_handle);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE("NVS", "Error (%s) opening NVS handle!", esp_err_to_name(err));
-        return err;
-    }
-    else
-    {
-        err = nvs_get_u8(my_handle, key, data);
-        if (err != ESP_OK)
-        {
-            if (err == ESP_ERR_NVS_NOT_FOUND)
-            {
-                ESP_LOGI("NVS", "The value associated with the key %s has not been set yet!", key);
-            }
-            else
-            {
-                ESP_LOGE("NVS", "Error (%s) reading!", esp_err_to_name(err));
-            }
-            nvs_close(my_handle);
-            return err;
-        }
-    }
-    nvs_close(my_handle);
-    return ESP_OK;
-}
-
 esp_err_t nvs_save(char *key, uint8_t data)
 {
-    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    esp_err_t err = nvs_set_u8(my_handle, key, data);
     if (err != ESP_OK)
     {
-    	return err;  // handle error
-    }
-    err = nvs_set_u8(my_handle, key, data);
-    if (err != ESP_OK)
-    {
-    	nvs_close(my_handle);
-    	return err;  // handle error
+        ESP_LOGE("NVS", "Error (%s) Writing!", esp_err_to_name(err));
+        return err;
     }
     err = nvs_commit(my_handle);
-    nvs_close(my_handle);
+    // Don't close the handle here
+    return err;
+}
 
+esp_err_t nvs_read(char *key, uint8_t *data)
+{
+    esp_err_t err = nvs_get_u8(my_handle, key, data);
+
+    if (err != ESP_OK)
+    {
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            ESP_LOGI("NVS","The value associated with the key %s has not been set yet!", key);
+        }
+        else
+        {
+            ESP_LOGE("NVS", "Error (%s) reading!", esp_err_to_name(err));
+        }
+    }
     return err;
 }
 
@@ -258,6 +271,26 @@ esp_err_t nvs_erase(void)
 {
     // Erase all NVS
     esp_err_t err = nvs_flash_erase();
-
     return err;
+}
+
+esp_err_t efuse_init()
+{
+    uint8_t serial_number_byte[4];
+    uint32_t serial_number;
+    size_t num_bits = 4 * 8;
+    size_t start_bit = 28 * 8;
+
+    if (esp_efuse_read_block(EFUSE_BLK3, &serial_number_byte, start_bit, num_bits) == ESP_OK)
+    {
+        // verify after burn efuse if BE or LE
+        printf("Serial Number[byte]: %02x%02x%02x%02x\n", serial_number_byte[0], serial_number_byte[1], serial_number_byte[2], serial_number_byte[3]);
+        serial_number =((uint32_t)serial_number_byte[0]) << 24 | ((uint32_t)serial_number_byte[1]) << 16 | ((uint32_t)serial_number_byte[2]) << 8 | ((uint32_t)serial_number_byte[3]);
+        set_serial_number(serial_number);
+        return ESP_OK;
+    }
+    else
+    {
+    	return ESP_FAIL;
+    }
 }

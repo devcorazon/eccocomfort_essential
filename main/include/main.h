@@ -26,6 +26,4 @@
 #define FW_VERSION_MINOR 0
 #define FW_VERSION_PATCH 1
 
-esp_err_t efuse_init();
-
 #endif /* MAIN_INCLUDE_MAIN_H_ */

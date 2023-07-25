@@ -11,6 +11,7 @@
 #include <string.h>
 #include "structs.h"
 #include "storage_internal.h"
+#include "nvs_flash.h"
 
 esp_err_t storage_init(void);
 int storage_set_default(void);
@@ -19,7 +20,7 @@ int storage_set_default(void);
 void set_serial_number(uint32_t serial_number);
 uint32_t get_serial_number(void);
 
-void set_fw_version(uint16_t fw_version);
+void set_fw_version();
 uint16_t get_fw_version(void);
 
 void set_mode_state(uint8_t mode_state);
@@ -57,5 +58,6 @@ esp_err_t nvs_read(char *key, uint8_t *data);
 esp_err_t nvs_save(char *key, uint8_t data);
 esp_err_t nvs_erase(void);
 
+esp_err_t efuse_init();
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

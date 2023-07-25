@@ -50,9 +50,6 @@ esp_err_t storage_init(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    // Set Firmware version
-    set_fw_version();
-
     // Getting serial number from eFuse BLK3
     ESP_ERROR_CHECK(efuse_init());
 
@@ -69,10 +66,10 @@ esp_err_t storage_init(void)
     if (ret == ESP_OK)
     {
        // read mode_set from NVS
-       ret = nvs_read("mode_set", &application_data.configuration_settings.mode_set);
+    	ret = nvs_read("mode_set", &application_data.configuration_settings.mode_set, DATA_TYPE_UINT8);
 
        // read speed_set from NVS
-       ret = nvs_read("speed_set", &application_data.configuration_settings.speed_set);
+    	ret = nvs_read("speed_set", &application_data.configuration_settings.speed_set, DATA_TYPE_UINT8);
     }
     else
     {
@@ -190,20 +187,8 @@ void set_serial_number(uint32_t serial_number)
 
 uint16_t get_fw_version(void)
 {
-	return application_data.runtime_data.fw_version_v_ctrl;
+	return application_data.runtime_data.fw_version_v_ctrl = (FW_VERSION_MAJOR) << 12 | (FW_VERSION_MINOR) << 6 | (FW_VERSION_PATCH);
 }
-
-void set_fw_version()
-{
-	uint8_t fw_version_byte[3];
-    // Setting Firmware version
-    fw_version_byte[0] = FW_VERSION_MAJOR;
-    fw_version_byte[1] = FW_VERSION_MINOR;
-    fw_version_byte[2] = FW_VERSION_PATCH;
-
-	application_data.runtime_data.fw_version_v_ctrl = ((uint16_t)fw_version_byte[0]) << 12 | ((uint16_t)fw_version_byte[1]) << 6 | ((uint16_t)fw_version_byte[2]);;
-}
-
 
 /// configuration settings
 uint8_t get_mode_set(void)
@@ -216,7 +201,7 @@ esp_err_t set_mode_set(uint8_t mode_set)
 	application_data.configuration_settings.mode_set = mode_set;
 
 	// Call the save function with key as "mode_set"
-	esp_err_t err = nvs_save("mode_set", mode_set);
+	esp_err_t err = nvs_save("mode_set", &mode_set, DATA_TYPE_UINT8);
 
     return err;
 }
@@ -231,27 +216,93 @@ esp_err_t set_speed_set(uint8_t speed_set)
 	application_data.configuration_settings.speed_set = speed_set;
 
 	// Call the save function with key as "speed_set"
-	esp_err_t err = nvs_save("speed_set", speed_set);
+	esp_err_t err = nvs_save("speed_set", &speed_set, DATA_TYPE_UINT8);
 
     return err;
 }
 
-esp_err_t nvs_save(char *key, uint8_t data)
+esp_err_t nvs_save(char *key, void *data, data_type_e type)
 {
-    esp_err_t err = nvs_set_u8(my_handle, key, data);
+    esp_err_t err;
+
+    switch(type) {
+        case DATA_TYPE_UINT8:
+            err = nvs_set_u8(my_handle, key, *(uint8_t*)data);
+            break;
+        case DATA_TYPE_INT8:
+            err = nvs_set_i8(my_handle, key, *(int8_t*)data);
+            break;
+        case DATA_TYPE_UINT16:
+            err = nvs_set_u16(my_handle, key, *(uint16_t*)data);
+            break;
+        case DATA_TYPE_INT16:
+            err = nvs_set_i16(my_handle, key, *(int16_t*)data);
+            break;
+        case DATA_TYPE_UINT32:
+            err = nvs_set_u32(my_handle, key, *(uint32_t*)data);
+            break;
+        case DATA_TYPE_INT32:
+            err = nvs_set_i32(my_handle, key, *(int32_t*)data);
+            break;
+        case DATA_TYPE_UINT64:
+            err = nvs_set_u64(my_handle, key, *(uint64_t*)data);
+            break;
+        case DATA_TYPE_INT64:
+            err = nvs_set_i64(my_handle, key, *(int64_t*)data);
+            break;
+        case DATA_TYPE_STRING:
+            err = nvs_set_str(my_handle, key, (char*)data);
+            break;
+        default:
+            return ESP_FAIL;
+    }
+
     if (err != ESP_OK)
     {
         ESP_LOGE("NVS", "Error (%s) Writing!", esp_err_to_name(err));
         return err;
     }
+
     err = nvs_commit(my_handle);
-    // Don't close the handle here
     return err;
 }
 
-esp_err_t nvs_read(char *key, uint8_t *data)
+
+esp_err_t nvs_read(char *key, void *data, data_type_e type)
 {
-    esp_err_t err = nvs_get_u8(my_handle, key, data);
+    esp_err_t err;
+
+    switch(type) {
+        case DATA_TYPE_UINT8:
+            err = nvs_get_u8(my_handle, key, (uint8_t*)data);
+            break;
+        case DATA_TYPE_INT8:
+            err = nvs_get_i8(my_handle, key, (int8_t*)data);
+            break;
+        case DATA_TYPE_UINT16:
+            err = nvs_get_u16(my_handle, key, (uint16_t*)data);
+            break;
+        case DATA_TYPE_INT16:
+            err = nvs_get_i16(my_handle, key, (int16_t*)data);
+            break;
+        case DATA_TYPE_UINT32:
+            err = nvs_get_u32(my_handle, key, (uint32_t*)data);
+            break;
+        case DATA_TYPE_INT32:
+            err = nvs_get_i32(my_handle, key, (int32_t*)data);
+            break;
+        case DATA_TYPE_UINT64:
+            err = nvs_get_u64(my_handle, key, (uint64_t*)data);
+            break;
+        case DATA_TYPE_INT64:
+            err = nvs_get_i64(my_handle, key, (int64_t*)data);
+            break;
+        case DATA_TYPE_STRING:
+            err = nvs_get_str(my_handle, key, (char*)data, NULL);
+            break;
+        default:
+            return ESP_FAIL;
+    }
 
     if (err != ESP_OK)
     {
@@ -264,6 +315,7 @@ esp_err_t nvs_read(char *key, uint8_t *data)
             ESP_LOGE("NVS", "Error (%s) reading!", esp_err_to_name(err));
         }
     }
+
     return err;
 }
 

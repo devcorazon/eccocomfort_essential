@@ -81,11 +81,17 @@ enum {
 	DIRECTION_IN								= 0x02,
 };
 
-// Value type
+// Data Type
 typedef enum {
-    TYPE_U8,
-    TYPE_U16,
-    TYPE_U32,
-    TYPE_U64,
-} ValueType;
+    DATA_TYPE_UINT8,
+    DATA_TYPE_INT8,
+    DATA_TYPE_UINT16,
+    DATA_TYPE_INT16,
+    DATA_TYPE_UINT32,
+    DATA_TYPE_INT32,
+    DATA_TYPE_UINT64,
+    DATA_TYPE_INT64,
+    DATA_TYPE_STRING,
+} data_type_e;
+
 #endif /* SRC_INCLUDE_TYPES_H_ */

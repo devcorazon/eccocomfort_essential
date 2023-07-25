@@ -17,8 +17,6 @@ void app_main()
     // init storage
     storage_init();
 
-    nvs_erase();
-
 	// Create FreeRTOS task for the collaudo_task
 	xTaskCreate(collaudo_task, "collaudo_task", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 

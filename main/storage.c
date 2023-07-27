@@ -420,7 +420,6 @@ esp_err_t efuse_init()
         printf("Serial Number[byte]: %02x%02x%02x%02x\n", serial_number_byte[0], serial_number_byte[1], serial_number_byte[2], serial_number_byte[3]);
         serial_number =((uint32_t)serial_number_byte[0]) << 24 | ((uint32_t)serial_number_byte[1]) << 16 | ((uint32_t)serial_number_byte[2]) << 8 | ((uint32_t)serial_number_byte[3]);
         set_serial_number(serial_number);
-        printf(" here we go : %d ",serial_number);
         return ESP_OK;
     }
     else

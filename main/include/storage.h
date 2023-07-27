@@ -50,16 +50,25 @@ int16_t get_ntc_temperature(void);
 void set_ntc_temperature(int16_t ntc_temperature);
 
 /// configuration settings
+uint8_t get_relative_humidity_set(void);
+esp_err_t set_relative_humidity_set(uint8_t relative_humidity_set);
+
+uint8_t get_lux_set(void);
+esp_err_t set_lux_set(uint8_t lux_set);
+
+uint8_t get_voc_set(void);
+esp_err_t set_voc_set(uint8_t voc_set);
+
+uint16_t get_temperature_offset(void);
+esp_err_t set_temperature_offset(uint16_t temperature_offset);
+
+uint16_t get_relative_humidity_offset(void);
+esp_err_t set_relative_humidity_offset(uint16_t relative_humidity_offset);
+
 esp_err_t set_mode_set(uint8_t mode_set);
 uint8_t get_mode_set(void);
 
 esp_err_t set_speed_set(uint8_t speed_set);
 uint8_t get_speed_set(void);
-
-esp_err_t nvs_read(char *key, void *data, data_type_e type);
-esp_err_t nvs_save(char *key, void *data, data_type_e type);
-esp_err_t nvs_erase(void);
-
-esp_err_t efuse_init();
 
 #endif /* SRC_INCLUDE_STORAGE_H_ */

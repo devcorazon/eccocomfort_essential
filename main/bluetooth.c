@@ -128,12 +128,7 @@ void ble_advertising_start()
     // Replace the 'A', 'D', 'V', '_', 'E', 'C', 'O', '_', 'C', 'O', 'M', 'F', 'O', 'R', 'T', '_', '8', '0'
     // with 'E', 'C', 'M', 'F', '-', and the serial_number_str
 
-    adv_data[9] = 'E';
-    adv_data[10] = 'C';
-    adv_data[11] = 'M';
-    adv_data[12] = 'F';
-    adv_data[13] = '-';
-    memcpy(&adv_data[14], serial_number_str, 8);  // Copy the serial_number_str into adv_data.
+    memcpy(&adv_data[13], serial_number_str, 8);  // Copy the serial_number_str into adv_data.
 
     ret = esp_ble_gap_config_adv_data_raw(adv_data, sizeof(adv_data));
     if (ret)

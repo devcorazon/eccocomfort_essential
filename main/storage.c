@@ -12,6 +12,11 @@
 
 nvs_handle_t my_handle;
 
+static esp_err_t nvs_read(char *key, void *data, data_type_e type);
+static esp_err_t nvs_save(char *key, void *data, data_type_e type);
+static esp_err_t nvs_erase(void);
+static esp_err_t efuse_init();
+
 // Data on ram.
 //static __attribute__((section(".noinit"))) struct application_data_s application_data;
 static struct application_data_s application_data;
@@ -48,15 +53,18 @@ esp_err_t storage_init(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    // Getting serial number from eFuse BLK3
-    ESP_ERROR_CHECK(efuse_init());
-
     if (application_data.crc_noinit_data != crc((const uint8_t *) &application_data.noinit_data, sizeof(application_data.noinit_data)))
     {
         storage_init_noinit_data();
     }
 
     storage_init_runtime_data();
+
+	//Set configuration settings to default value
+    storage_init_configuration_settings();
+
+    // Getting serial number from eFuse BLK3
+    ESP_ERROR_CHECK(efuse_init());
 
     // Open NVS handle
     ret = nvs_open("storage", NVS_READWRITE, &my_handle);
@@ -71,12 +79,7 @@ esp_err_t storage_init(void)
     }
     else
     {
-       ESP_LOGE("NVS", "Error (%s) opening NVS handle!", esp_err_to_name(ret));
-       if ( ret == ESP_ERR_NVS_NOT_FOUND )
-       {
-    	//Set configuration settings to default value
-         storage_init_configuration_settings();
-       }
+        ESP_LOGE("NVS", "Error (%s) opening NVS handle!", esp_err_to_name(ret));
     }
     return ret;
 }
@@ -96,14 +99,12 @@ esp_err_t storage_set_default(void)
 
 uint32_t get_serial_number(void)
 {
-	printf (" I just get %ld ",application_data.runtime_data.serial_number);
 	return application_data.runtime_data.serial_number;
 }
 
 void set_serial_number(uint32_t serial_number)
 {
 	application_data.runtime_data.serial_number = serial_number;
-	printf (" I just set %ld ",application_data.runtime_data.serial_number);
 }
 
 uint16_t get_fw_version(void)
@@ -245,7 +246,7 @@ esp_err_t set_voc_set(uint8_t voc_set)
     return err;
 }
 
-uint8_t get_temperature_offset(void)
+uint16_t get_temperature_offset(void)
 {
 	return application_data.configuration_settings.temperature_offset;
 }
@@ -255,12 +256,12 @@ esp_err_t set_temperature_offset(uint16_t temperature_offset)
 	application_data.configuration_settings.temperature_offset = temperature_offset;
 
 	// Call the save function with key as "temperature_offset"
-	esp_err_t err = nvs_save("temperature_offset", &temperature_offset, DATA_TYPE_INT16);
+	esp_err_t err = nvs_save("temperature_offset", &temperature_offset, DATA_TYPE_UINT16);
 
     return err;
 }
 
-uint8_t get_relative_humidity_offset(void)
+uint16_t get_relative_humidity_offset(void)
 {
 	return application_data.configuration_settings.relative_humidity_offset;
 }

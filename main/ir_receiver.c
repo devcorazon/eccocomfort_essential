@@ -102,8 +102,8 @@ static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t s
 {
     printf("NEC frame start---\r\n");
     for (size_t i = 0; i < symbol_num; i++) {
-        printf("{%d:%d},{%d:%d}\r\n", rmt_nec_symbols[i].level0, rmt_nec_symbols[i].duration0,
-               rmt_nec_symbols[i].level1, rmt_nec_symbols[i].duration1);
+//        printf("{%d:%d},{%d:%d}\r\n", rmt_nec_symbols[i].level0, rmt_nec_symbols[i].duration0,
+//               rmt_nec_symbols[i].level1, rmt_nec_symbols[i].duration1);
     }
     printf("---NEC frame end: ");
     // decode RMT symbols
@@ -149,7 +149,7 @@ void ir_receive_task(void* param)
     QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
     assert(receive_queue);
     rmt_rx_event_callbacks_t cbs = {
-        .on_recv_done = v,
+        .on_recv_done = rmt_rx_done_callback,
     };
     ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_channel, &cbs, receive_queue));
 

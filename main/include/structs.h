@@ -26,7 +26,7 @@ struct runtime_data_s {
 	uint16_t    relative_humidity;
 	int32_t     voc;
 	int16_t     lux;
-//	int16_t     ntc_temperature;
+	int16_t     ntc_temperature;
 };
 
 ///

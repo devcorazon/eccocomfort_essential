@@ -74,27 +74,30 @@ void sensor_measure_task(void *pvParameters)
         {
             // On successful measurement, convert them to the respective raw values before storing
             set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
+            set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
 
             // if FAN is Direction IN set temperature using sgp40 sensor ( ESPELLE / FERMA)
-            if (get_direction_state() == DIRECTION_IN  ||  get_direction_state() == DIRECTION_NONE)
-            {
-            	set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
-            }
+//            if (get_direction_state() == DIRECTION_IN  ||  get_direction_state() == DIRECTION_NONE)
+//            {
+//            	set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
+//            }
         }
 
         if (ntc_adc_temperature(&ntc_temperature) != ESP_OK)
         {
             ntc_temperature = UINT16_MAX;
             // Store error value
-            set_temperature(ntc_temperature);
+            set_ntc_temperature(ntc_temperature);
         }
         else
         {
-        	// if FAN is Direction OUT set temperature using ntc sensor ( IMETTE )
-        	if ( get_direction_state() == DIRECTION_OUT)
-        	{
-        		set_temperature(SET_VALUE_TO_TEMP_RAW(ntc_temperature));
-        	}
+        	set_ntc_temperature(ntc_temperature);
+
+//        	// if FAN is Direction OUT set temperature using ntc sensor ( IMETTE )
+//        	if ( get_direction_state() == DIRECTION_OUT)
+//        	{
+//        		set_temperature(SET_VALUE_TO_TEMP_RAW(ntc_temperature));
+//        	}
         }
 
         if (sgp40_measure_voc(&sgp, humidity, temperature, &voc_index) != ESP_OK)

@@ -53,11 +53,7 @@ esp_err_t fan_set(uint8_t direction,uint8_t speed)
     gpio_set_level(FAN_DIRECTION_PIN, (int)direction);
 
 	// Check speed level bounds
-    if (speed < 0)
-    {
-    	speed = 0;
-    }
-    else if (speed > 5)
+    if (speed > 5)
     {
     	speed = 5;
     }

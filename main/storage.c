@@ -96,12 +96,14 @@ esp_err_t storage_set_default(void)
 
 uint32_t get_serial_number(void)
 {
+	printf (" I just get %ld ",application_data.runtime_data.serial_number);
 	return application_data.runtime_data.serial_number;
 }
 
 void set_serial_number(uint32_t serial_number)
 {
 	application_data.runtime_data.serial_number = serial_number;
+	printf (" I just set %ld ",application_data.runtime_data.serial_number);
 }
 
 uint16_t get_fw_version(void)
@@ -187,14 +189,14 @@ void set_lux(int16_t lux)
 	application_data.runtime_data.lux = lux;
 }
 
-//int16_t get_ntc_temperature(void)
-//{
-//	return application_data.runtime_data.ntc_temperature;
-//}
-//void set_ntc_temperature(int16_t ntc_temperature)
-//{
-//	application_data.runtime_data.ntc_temperature = ntc_temperature;
-//}
+int16_t get_ntc_temperature(void)
+{
+	return application_data.runtime_data.ntc_temperature;
+}
+void set_ntc_temperature(int16_t ntc_temperature)
+{
+	application_data.runtime_data.ntc_temperature = ntc_temperature;
+}
 
 /// configuration settings
 

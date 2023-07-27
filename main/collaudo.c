@@ -14,12 +14,6 @@
 
 static const char *TAG = "collaudo";
 
-static esp_err_t do_test_led_cmd(int argc, char **argv);
-static esp_err_t do_test_all_cmd(int argc, char **argv);
-static esp_err_t do_test_fan_cmd(int argc, char **argv);
-static esp_err_t do_test_start_cmd(int argc, char **argv);
-static esp_err_t do_test_stop_cmd(int argc, char** argv);
-
 void collaudo_task(void *pvParameters)
 {
 	esp_console_repl_t *repl = NULL;
@@ -132,6 +126,7 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
 static esp_err_t do_test_all_cmd(int argc, char **argv)
 {
 	uint32_t serial_number = get_serial_number();
+
     printf("Serial Number: %08lx\n", serial_number);
 
     printf("Firmware version: v%d.%d.%d\n", FW_VERSION_MAJOR,FW_VERSION_MINOR,FW_VERSION_PATCH);
@@ -176,15 +171,15 @@ static esp_err_t do_test_all_cmd(int argc, char **argv)
         printf("LUX =  %u.%01u %%\n", RH_RAW_TO_INT(lux), RH_RAW_TO_DEC(lux));
     }
 
-//    uint16_t ntc_temp = get_ntc_temperature();
-//    if (ntc_temp == UINT16_MAX)
-//    {
-//        printf("NTC Temperature reading error\n");
-//    }
-//    else
-//    {
-//        printf("NTC Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(ntc_temp), TEMP_RAW_TO_DEC(ntc_temp));
-//    }
+    uint16_t ntc_temp = get_ntc_temperature();
+    if (ntc_temp == UINT16_MAX)
+    {
+        printf("NTC Temperature reading error\n");
+    }
+    else
+    {
+        printf("NTC Temperature =  %d.%01d C\n", TEMP_RAW_TO_INT(ntc_temp), TEMP_RAW_TO_DEC(ntc_temp));
+    }
 
     return ESP_OK;
 

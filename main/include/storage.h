@@ -46,8 +46,8 @@ int32_t get_voc(void);
 void set_lux(int16_t lux);
 int16_t get_lux(void);
 
-//int16_t get_ntc_temperature(void);
-//void set_ntc_temperature(int16_t ntc_temperature);
+int16_t get_ntc_temperature(void);
+void set_ntc_temperature(int16_t ntc_temperature);
 
 /// configuration settings
 esp_err_t set_mode_set(uint8_t mode_set);

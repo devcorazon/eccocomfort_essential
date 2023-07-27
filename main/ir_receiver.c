@@ -1,87 +1,180 @@
 /*
- * ir_receiver.c
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
  *
- *  Created on: 29 juin 2023
- *      Author: youcef.benakmoume
+ * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
-#include "esp_log.h"
-#include "ir_receiver.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
+#include "esp_log.h"
+#include "driver/rmt_rx.h"
+#include "ir_receiver.h"
 
-static RingbufHandle_t rb = NULL;  // Make rb accessible in all functions
+static const char *TAG = "IR_Receiver";
 
 /**
- * @brief Initialize the IR receiver
- *
- * This function initializes the GPIO and RMT required for the IR receiver to function.
- *
- * @return ESP_OK if initialization is successful, error code otherwise.
+ * @brief Saving NEC decode results
  */
-esp_err_t ir_receiver_init()
+static uint16_t s_nec_code_address;
+static uint16_t s_nec_code_command;
+
+/**
+ * @brief Check whether a duration is within expected range
+ */
+static inline bool nec_check_in_range(uint32_t signal_duration, uint32_t spec_duration)
 {
-    rmt_config_t rmt_rx =
-    {
-        .rmt_mode = RMT_MODE_RX,
-        .channel = RMT_RX_CHANNEL,
-        .clk_div = 80,  // 1 MHz clock
-        .gpio_num = RMT_RX_GPIO_NUM,
-        .mem_block_num = 1,
-        .rx_config = {
-            .filter_en = false,
-            .idle_threshold = RMT_TICK_10_US,
-        }
-    };
-
-    ESP_ERROR_CHECK(rmt_config(&rmt_rx));
-    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx.channel, RMT_RX_BUFFER_SIZE, 0));
-
-    ESP_ERROR_CHECK(rmt_get_ringbuf_handle(rmt_rx.channel, &rb));
-    ESP_ERROR_CHECK(rmt_rx_start(rmt_rx.channel, 1));
-
-    return ESP_OK;
+    return (signal_duration < (spec_duration + EXAMPLE_IR_NEC_DECODE_MARGIN)) &&
+           (signal_duration > (spec_duration - EXAMPLE_IR_NEC_DECODE_MARGIN));
 }
-/**
- * @brief Read IR data
- *
- * This function reads the duration and level of the IR signal from the IR receiver.
- *
- * @param item Pointer to an array of rmt_item32_t structures where the received IR items will be stored.
- * @param item_num Number of items in the array.
- * @return ESP_OK if the reading is successful, ESP_FAIL otherwise.
- */
-esp_err_t ir_receiver_read(rmt_item32_t* item, int item_num)
-{
-    for (int i = 0; i < item_num; i++)
-    {
-        int duration0 = item[i].duration0;
-        int level0 = item[i].level0;
-        int duration1 = item[i].duration1;
-        int level1 = item[i].level1;
 
-        printf("Item%d: Level%d Duration%d, Level%d Duration%d\n", i, level0, duration0, level1, duration1);
+/**
+ * @brief Check whether a RMT symbol represents NEC logic zero
+ */
+static bool nec_parse_logic0(rmt_symbol_word_t *rmt_nec_symbols)
+{
+    return nec_check_in_range(rmt_nec_symbols->duration0, NEC_PAYLOAD_ZERO_DURATION_0) &&
+           nec_check_in_range(rmt_nec_symbols->duration1, NEC_PAYLOAD_ZERO_DURATION_1);
+}
+
+/**
+ * @brief Check whether a RMT symbol represents NEC logic one
+ */
+static bool nec_parse_logic1(rmt_symbol_word_t *rmt_nec_symbols)
+{
+    return nec_check_in_range(rmt_nec_symbols->duration0, NEC_PAYLOAD_ONE_DURATION_0) &&
+           nec_check_in_range(rmt_nec_symbols->duration1, NEC_PAYLOAD_ONE_DURATION_1);
+}
+
+/**
+ * @brief Decode RMT symbols into NEC address and command
+ */
+static bool nec_parse_frame(rmt_symbol_word_t *rmt_nec_symbols)
+{
+    rmt_symbol_word_t *cur = rmt_nec_symbols;
+    uint16_t address = 0;
+    uint16_t command = 0;
+    bool valid_leading_code = nec_check_in_range(cur->duration0, NEC_LEADING_CODE_DURATION_0) &&
+                              nec_check_in_range(cur->duration1, NEC_LEADING_CODE_DURATION_1);
+    if (!valid_leading_code) {
+        return false;
     }
-    return ESP_OK;
+    cur++;
+    for (int i = 0; i < 16; i++) {
+        if (nec_parse_logic1(cur)) {
+            address |= 1 << i;
+        } else if (nec_parse_logic0(cur)) {
+            address &= ~(1 << i);
+        } else {
+            return false;
+        }
+        cur++;
+    }
+    for (int i = 0; i < 16; i++) {
+        if (nec_parse_logic1(cur)) {
+            command |= 1 << i;
+        } else if (nec_parse_logic0(cur)) {
+            command &= ~(1 << i);
+        } else {
+            return false;
+        }
+        cur++;
+    }
+    // save address and command
+    s_nec_code_address = address;
+    s_nec_code_command = command;
+    return true;
+}
+
+/**
+ * @brief Check whether the RMT symbols represent NEC repeat code
+ */
+static bool nec_parse_frame_repeat(rmt_symbol_word_t *rmt_nec_symbols)
+{
+    return nec_check_in_range(rmt_nec_symbols->duration0, NEC_REPEAT_CODE_DURATION_0) &&
+           nec_check_in_range(rmt_nec_symbols->duration1, NEC_REPEAT_CODE_DURATION_1);
+}
+
+/**
+ * @brief Decode RMT symbols into NEC scan code and print the result
+ */
+static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
+{
+    printf("NEC frame start---\r\n");
+    for (size_t i = 0; i < symbol_num; i++) {
+        printf("{%d:%d},{%d:%d}\r\n", rmt_nec_symbols[i].level0, rmt_nec_symbols[i].duration0,
+               rmt_nec_symbols[i].level1, rmt_nec_symbols[i].duration1);
+    }
+    printf("---NEC frame end: ");
+    // decode RMT symbols
+    switch (symbol_num) {
+    case 34: // NEC normal frame
+        if (nec_parse_frame(rmt_nec_symbols)) {
+            printf("Address=%04X, Command=%04X\r\n\r\n", s_nec_code_address, s_nec_code_command);
+        }
+        break;
+    case 2: // NEC repeat frame
+        if (nec_parse_frame_repeat(rmt_nec_symbols)) {
+            printf("Address=%04X, Command=%04X, repeat\r\n\r\n", s_nec_code_address, s_nec_code_command);
+        }
+        break;
+    default:
+        printf("Unknown NEC frame\r\n\r\n");
+        break;
+    }
+}
+
+static bool rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
+{
+    BaseType_t high_task_wakeup = pdFALSE;
+    QueueHandle_t receive_queue = (QueueHandle_t)user_data;
+    // send the received RMT symbols to the parser task
+    xQueueSendFromISR(receive_queue, edata, &high_task_wakeup);
+    return high_task_wakeup == pdTRUE;
 }
 
 void ir_receive_task(void* param)
 {
-	// Init IR Receiver
-	ESP_ERROR_CHECK(ir_receiver_init());
+    ESP_LOGI(TAG, "create RMT RX channel");
+    rmt_rx_channel_config_t rx_channel_cfg = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz = EXAMPLE_IR_RESOLUTION_HZ,
+        .mem_block_symbols = 64, // amount of RMT symbols that the channel can store at a time
+        .gpio_num = EXAMPLE_IR_RX_GPIO_NUM,
+    };
+    rmt_channel_handle_t rx_channel = NULL;
+    ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &rx_channel));
 
-    while (rb)
+    ESP_LOGI(TAG, "register RX done callback");
+    QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
+    assert(receive_queue);
+    rmt_rx_event_callbacks_t cbs = {
+        .on_recv_done = v,
+    };
+    ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_channel, &cbs, receive_queue));
+
+    // the following timing requirement is based on NEC protocol
+    rmt_receive_config_t receive_config = {
+        .signal_range_min_ns = 1250,     // the shortest duration for NEC signal is 560us, 1250ns < 560us, valid signal won't be treated as noise
+        .signal_range_max_ns = 12000000, // the longest duration for NEC signal is 9000us, 12000000ns > 9000us, the receive won't stop early
+    };
+
+    ESP_LOGI(TAG, "enable RMT TX and RX channels");
+    ESP_ERROR_CHECK(rmt_enable(rx_channel));
+
+    // save the received RMT symbols
+    rmt_symbol_word_t raw_symbols[64]; // 64 symbols should be sufficient for a standard NEC frame
+    rmt_rx_done_event_data_t rx_data;
+    // ready to receive
+    ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
+    while (1)
     {
-        size_t rx_size = 0;
-        rmt_item32_t* item = (rmt_item32_t*) xRingbufferReceive(rb, &rx_size, 1000);
-        if (item)
-        {
-            int item_num = rx_size / sizeof(rmt_item32_t);
-            ESP_ERROR_CHECK(ir_receiver_read(item, item_num));
-            vRingbufferReturnItem(rb, (void*) item);
+        // wait for RX done signal
+        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
+            // parse the receive symbols and print the result
+            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+            // start receive again
+            ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
         }
-        // delay of 100ms
-        vTaskDelay(pdMS_TO_TICKS(100));
     }
-
-    vTaskDelete(NULL);
 }

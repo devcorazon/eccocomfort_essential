@@ -98,7 +98,7 @@ static bool nec_parse_frame_repeat(rmt_symbol_word_t *rmt_nec_symbols)
 /**
  * @brief Decode RMT symbols into NEC scan code and print the result
  */
-static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
+static void parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
 {
     printf("NEC frame start---\r\n");
     for (size_t i = 0; i < symbol_num; i++) {
@@ -172,7 +172,7 @@ void ir_receive_task(void* param)
         // wait for RX done signal
         if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
             // parse the receive symbols and print the result
-            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+            parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
             // start receive again
             ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
         }

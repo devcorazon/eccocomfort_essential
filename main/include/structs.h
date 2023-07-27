@@ -18,18 +18,24 @@ struct noinit_data_s {
 struct runtime_data_s {
 	uint32_t    serial_number;
 	uint16_t    fw_version_v_ctrl;
+	uint8_t     mode_state;
+	uint8_t     speed_state;
+	uint8_t     direction_state;
+	uint8_t     device_state;
 	int16_t		temperature;
 	uint16_t    relative_humidity;
 	int32_t     voc;
 	int16_t     lux;
-	int16_t     ntc_temperature;
-	uint8_t     mode_state;
-	uint8_t     speed_state;
-	uint8_t     direction_state;
+//	int16_t     ntc_temperature;
 };
 
 ///
 struct configuration_settings_s {
+	uint8_t     relative_humidity_set;
+	uint8_t     lux_set;
+	uint8_t     voc_set;
+	uint16_t    temperature_offset;
+	uint16_t    relative_humidity_offset;
 	uint8_t		mode_set;
 	uint8_t		speed_set;
 

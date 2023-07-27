@@ -1,8 +1,8 @@
-/**
- * @file ltr303.c
+/*
+ * ir_receiver.h
  *
- * Copyright (c) Youcef BENAKMOUME
- *
+ *  Created on: 29 juin 2023
+ *      Author: youcef.benakmoume
  */
 
 #ifndef __IR_RECEIVER_H__

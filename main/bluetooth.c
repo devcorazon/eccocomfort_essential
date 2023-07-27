@@ -25,7 +25,7 @@
 #include <inttypes.h>  // Include for PRIx32
 #include "storage.h"
 
-#define LOG_TAG "ADV_DEMO"
+#define LOG_TAG "ADV_BLE"
 
 #define ADV_HANDLE      0
 #define NUM_ADV         1

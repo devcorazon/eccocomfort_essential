@@ -11,8 +11,6 @@
 #include "main.h"
 
 nvs_handle_t my_handle;
-static bool handle_open = false; // Add this flag to check if handle is open
-
 
 // Data on ram.
 //static __attribute__((section(".noinit"))) struct application_data_s application_data;
@@ -96,54 +94,19 @@ esp_err_t storage_set_default(void)
 
 /// runtime data
 
-int16_t get_temperature(void)
+uint32_t get_serial_number(void)
 {
-	return application_data.runtime_data.temperature;
+	return application_data.runtime_data.serial_number;
 }
 
-void set_temperature(int16_t temperature)
+void set_serial_number(uint32_t serial_number)
 {
-	application_data.runtime_data.temperature = temperature;
+	application_data.runtime_data.serial_number = serial_number;
 }
 
-uint16_t get_relative_humidity(void)
+uint16_t get_fw_version(void)
 {
-	return application_data.runtime_data.relative_humidity;
-}
-
-void set_relative_humidity(int16_t relative_humidity)
-{
-	application_data.runtime_data.relative_humidity = relative_humidity;
-}
-
-int32_t get_voc(void)
-{
-	return application_data.runtime_data.voc;
-}
-
-void set_voc(int32_t voc)
-{
-	application_data.runtime_data.voc = voc;
-}
-
-int16_t get_lux(void)
-{
-	return application_data.runtime_data.lux;
-}
-
-void set_lux(int16_t lux)
-{
-	application_data.runtime_data.lux = lux;
-}
-
-int16_t get_ntc_temperature(void)
-{
-	return application_data.runtime_data.ntc_temperature;
-}
-
-void set_ntc_temperature(int16_t ntc_temperature)
-{
-	application_data.runtime_data.ntc_temperature = ntc_temperature;
+	return application_data.runtime_data.fw_version_v_ctrl = (FW_VERSION_MAJOR) << 12 | (FW_VERSION_MINOR) << 6 | (FW_VERSION_PATCH);
 }
 
 uint8_t get_mode_state(void)
@@ -175,22 +138,141 @@ void set_direction_state(uint8_t direction_state)
 	application_data.runtime_data.direction_state= direction_state;
 }
 
-uint32_t get_serial_number(void)
+uint8_t get_device_state(void)
 {
-	return application_data.runtime_data.serial_number;
+	return application_data.runtime_data.device_state;
+}
+void set_device_state(uint8_t device_state)
+{
+	application_data.runtime_data.device_state= device_state;
 }
 
-void set_serial_number(uint32_t serial_number)
+int16_t get_temperature(void)
 {
-	application_data.runtime_data.serial_number = serial_number;
+	return application_data.runtime_data.temperature;
 }
 
-uint16_t get_fw_version(void)
+void set_temperature(int16_t temperature)
 {
-	return application_data.runtime_data.fw_version_v_ctrl = (FW_VERSION_MAJOR) << 12 | (FW_VERSION_MINOR) << 6 | (FW_VERSION_PATCH);
+	application_data.runtime_data.temperature = temperature;
 }
+
+uint16_t get_relative_humidity(void)
+{
+	return application_data.runtime_data.relative_humidity;
+}
+
+void set_relative_humidity(uint16_t relative_humidity)
+{
+	application_data.runtime_data.relative_humidity = relative_humidity;
+}
+
+int32_t get_voc(void)
+{
+	return application_data.runtime_data.voc;
+}
+
+void set_voc(int32_t voc)
+{
+	application_data.runtime_data.voc = voc;
+}
+
+int16_t get_lux(void)
+{
+	return application_data.runtime_data.lux;
+}
+
+void set_lux(int16_t lux)
+{
+	application_data.runtime_data.lux = lux;
+}
+
+//int16_t get_ntc_temperature(void)
+//{
+//	return application_data.runtime_data.ntc_temperature;
+//}
+//void set_ntc_temperature(int16_t ntc_temperature)
+//{
+//	application_data.runtime_data.ntc_temperature = ntc_temperature;
+//}
 
 /// configuration settings
+
+uint8_t get_relative_humidity_set(void)
+{
+	return application_data.configuration_settings.relative_humidity_set;
+}
+
+esp_err_t set_relative_humidity_set(uint8_t relative_humidity_set)
+{
+	application_data.configuration_settings.relative_humidity_set = relative_humidity_set;
+
+	// Call the save function with key as "relative_humidity_set"
+	esp_err_t err = nvs_save("relative_humidity_set", &relative_humidity_set, DATA_TYPE_UINT8);
+
+    return err;
+}
+
+uint8_t get_lux_set(void)
+{
+	return application_data.configuration_settings.lux_set;
+}
+
+esp_err_t set_lux_set(uint8_t lux_set)
+{
+	application_data.configuration_settings.lux_set = lux_set;
+
+	// Call the save function with key as "lux_set"
+	esp_err_t err = nvs_save("lux_set", &lux_set, DATA_TYPE_UINT8);
+
+    return err;
+}
+
+uint8_t get_voc_set(void)
+{
+	return application_data.configuration_settings.voc_set;
+}
+
+esp_err_t set_voc_set(uint8_t voc_set)
+{
+	application_data.configuration_settings.voc_set = voc_set;
+
+	// Call the save function with key as "voc_set"
+	esp_err_t err = nvs_save("voc_set", &voc_set, DATA_TYPE_UINT8);
+
+    return err;
+}
+
+uint8_t get_temperature_offset(void)
+{
+	return application_data.configuration_settings.temperature_offset;
+}
+
+esp_err_t set_temperature_offset(uint16_t temperature_offset)
+{
+	application_data.configuration_settings.temperature_offset = temperature_offset;
+
+	// Call the save function with key as "temperature_offset"
+	esp_err_t err = nvs_save("temperature_offset", &temperature_offset, DATA_TYPE_INT16);
+
+    return err;
+}
+
+uint8_t get_relative_humidity_offset(void)
+{
+	return application_data.configuration_settings.relative_humidity_offset;
+}
+
+esp_err_t set_relative_humidity_offset(uint16_t relative_humidity_offset)
+{
+	application_data.configuration_settings.relative_humidity_offset = relative_humidity_offset;
+
+	// Call the save function with key as "relative_humidity_offset"
+	esp_err_t err = nvs_save("relative_humidity_offset", &relative_humidity_offset, DATA_TYPE_UINT16);
+
+    return err;
+}
+
 uint8_t get_mode_set(void)
 {
 	return application_data.configuration_settings.mode_set;
@@ -267,7 +349,6 @@ esp_err_t nvs_save(char *key, void *data, data_type_e type)
     return err;
 }
 
-
 esp_err_t nvs_read(char *key, void *data, data_type_e type)
 {
     esp_err_t err;
@@ -339,6 +420,7 @@ esp_err_t efuse_init()
         printf("Serial Number[byte]: %02x%02x%02x%02x\n", serial_number_byte[0], serial_number_byte[1], serial_number_byte[2], serial_number_byte[3]);
         serial_number =((uint32_t)serial_number_byte[0]) << 24 | ((uint32_t)serial_number_byte[1]) << 16 | ((uint32_t)serial_number_byte[2]) << 8 | ((uint32_t)serial_number_byte[3]);
         set_serial_number(serial_number);
+        printf(" here we go : %d ",serial_number);
         return ESP_OK;
     }
     else

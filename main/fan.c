@@ -1,5 +1,10 @@
+/*
+ * fan.c
+ *
+ *  Created on: 29 juin 2023
+ *      Author: youcef.benakmoume
+ */
 #include "fan.h"
-
 
 static esp_err_t fan_pwm_init();
 static bool fan_initialized = false;

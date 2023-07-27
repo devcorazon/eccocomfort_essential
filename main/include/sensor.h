@@ -24,6 +24,5 @@
 
 esp_err_t sensor_init();
 void sensor_measure_task(void *pvParameters);
-static const char *voc_index_name(int32_t voc_index);
 
 #endif /* MAIN_INCLUDE_SENSOR_H_ */

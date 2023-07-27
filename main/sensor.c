@@ -15,6 +15,8 @@ sht4x_t sht;
 sgp40_t sgp;
 ltr303_t ltr;
 
+static const char *voc_index_name(int32_t voc_index);
+
 esp_err_t sensor_init()
 {
     // Init I2C bus
@@ -71,8 +73,28 @@ void sensor_measure_task(void *pvParameters)
         else
         {
             // On successful measurement, convert them to the respective raw values before storing
-            set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
             set_relative_humidity(SET_VALUE_TO_RH_RAW(humidity));
+
+            // if FAN is Direction IN set temperature using sgp40 sensor ( ESPELLE / FERMA)
+            if (get_direction_state() == DIRECTION_IN  ||  get_direction_state() == DIRECTION_NONE)
+            {
+            	set_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
+            }
+        }
+
+        if (ntc_adc_temperature(&ntc_temperature) != ESP_OK)
+        {
+            ntc_temperature = UINT16_MAX;
+            // Store error value
+            set_temperature(ntc_temperature);
+        }
+        else
+        {
+        	// if FAN is Direction OUT set temperature using ntc sensor ( IMETTE )
+        	if ( get_direction_state() == DIRECTION_OUT)
+        	{
+        		set_temperature(SET_VALUE_TO_TEMP_RAW(ntc_temperature));
+        	}
         }
 
         if (sgp40_measure_voc(&sgp, humidity, temperature, &voc_index) != ESP_OK)
@@ -86,6 +108,7 @@ void sensor_measure_task(void *pvParameters)
             set_voc(voc_index);
         }
 
+        // TODO ADD LED RGB CONTROL
         if (ltr303_measure_lux(&ltr, &lux) != ESP_OK)
         {
             lux = UINT16_MAX;
@@ -95,24 +118,6 @@ void sensor_measure_task(void *pvParameters)
         else
         {
             set_lux(SET_VALUE_TO_RH_RAW(lux));
-        }
-
-        if (ntc_adc_temperature(&ntc_temperature) != ESP_OK)
-        {
-            ntc_temperature = UINT16_MAX;
-            // Store error value
-            set_ntc_temperature(ntc_temperature);
-        }
-        else
-        {
-        	if ( get_direction_state() == DIRECTION_IN) // Da verirfacre se imette con IN  or OUT
-        	{
-            set_ntc_temperature(ntc_temperature);
-        	}
-        	else
-        	{
-             set_ntc_temperature(SET_VALUE_TO_TEMP_RAW(temperature));
-        	}
         }
 
         // Wait 1 second for the next sensor reading

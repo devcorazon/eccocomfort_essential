@@ -104,6 +104,7 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
         case 1:
             color = RGB_LED_COLOR_RED;
             mode = RGB_LED_MODE_ON;
+            //rgb_led_blink(color,100,5000);
             break;
         case 2:
             color = RGB_LED_COLOR_GREEN;
@@ -118,6 +119,7 @@ static esp_err_t do_test_led_cmd(int argc, char **argv)
             return ESP_FAIL;
     }
 
+    //rgb_led_blink(color,4000,200); // Use this function to test blink ; make sure that duration > period
     ESP_ERROR_CHECK(rgb_led_set(color,mode));
 
     return ESP_OK;
